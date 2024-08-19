@@ -2,6 +2,7 @@ source "https://rubygems.org"
 
 ruby file: ".ruby-version"
 
+gem 'clipboard'
 gem 'dotenv'
 gem 'httparty'
 gem 'rspec'

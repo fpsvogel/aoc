@@ -1,4 +1,5 @@
 require 'benchmark'
+require 'clipboard'
 
 # Manage a solution's source file for a given day
 class PuzzleSource
@@ -18,6 +19,7 @@ class PuzzleSource
       if !solution.nil?
         puts "Result for #{part_name}:"
         puts solution
+        Clipboard.copy(solution)
         has_result = true
       else
         puts "no result for #{part_name}"
