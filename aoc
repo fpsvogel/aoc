@@ -3,10 +3,10 @@ require 'httparty'
 require 'dotenv/load'
 require 'thor'
 require 'benchmark'
-lib_files = File.join(File.dirname(__FILE__), 'lib', '*.rb')
-src_files = File.join(File.dirname(__FILE__), 'src', '**', '*.rb')
-Dir[lib_files].each { |file| require file }
-Dir[src_files].each { |file| require file }
+cli_files = File.join(File.dirname(__FILE__), 'cli', '*.rb')
+solution_files = File.join(File.dirname(__FILE__), 'solutions', '**', '*.rb')
+Dir[cli_files].each { |file| require file }
+Dir[solution_files].each { |file| require file }
 
 # The CLI application
 class Aoc < Thor

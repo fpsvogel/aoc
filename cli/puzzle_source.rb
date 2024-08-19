@@ -33,7 +33,7 @@ class PuzzleSource
   end
 
   def self.puzzle_source_directory(year)
-    File.join('src', year)
+    File.join('solutions', year)
   end
 
   def self.puzzle_source_path(year, day)
