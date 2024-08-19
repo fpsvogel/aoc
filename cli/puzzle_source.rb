@@ -47,11 +47,11 @@ class PuzzleSource
     <<~TPL
       module Year#{year}
         class Day#{day}
-          def part1(input)
+          def part_1(input)
             nil
           end
 
-          def part2(input)
+          def part_2(input)
             nil
           end
         end
