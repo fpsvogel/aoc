@@ -30,9 +30,10 @@ downloads the input, creates a sample source and spec file'
   def run_day(year, day)
     puzzle = PuzzleSource.create_puzzle(year, day)
     input = PuzzleInput.load(year, day)
-    PuzzleSource.run_part('part 1') { puzzle.part1(input) }
+    url = "https://adventofcode.com/#{year}/day/#{day}"
+    PuzzleSource.run_part('part 1', url) { puzzle.part1(input) }
     puts
-    PuzzleSource.run_part('part 2') { puzzle.part2(input) }
+    PuzzleSource.run_part('part 2', url) { puzzle.part2(input) }
   end
 
   desc 'part1 YEAR DAY', 'executes the part1 for a given day/year'
@@ -40,7 +41,8 @@ downloads the input, creates a sample source and spec file'
   def part1(year, day)
     puzzle = PuzzleSource.create_puzzle(year, day)
     input = PuzzleInput.load(year, day)
-    PuzzleSource.run_part('part 1') { puzzle.part1(input) }
+    url = "https://adventofcode.com/#{year}/day/#{day}"
+    PuzzleSource.run_part('part 1', url) { puzzle.part1(input) }
   end
 
   desc 'part2 YEAR DAY', 'executes the part2 for a given day/year'
@@ -48,9 +50,11 @@ downloads the input, creates a sample source and spec file'
   def part2(year, day)
     puzzle = PuzzleSource.create_puzzle(year, day)
     input = PuzzleInput.load(year, day)
-    PuzzleSource.run_part('part 2') { puzzle.part2(input) }
+    url = "https://adventofcode.com/#{year}/day/#{day}"
+    PuzzleSource.run_part('part 2', url) { puzzle.part2(input) }
   end
 end
 
+Dotenv.load("#{__dir__}/.env")
 Dotenv.require_keys('AOC_COOKIE', 'AOC_INPUT_DIRECTORY')
 Aoc.start
