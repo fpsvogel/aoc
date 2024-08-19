@@ -27,12 +27,12 @@ class PuzzleSource
   end
 
   def self.puzzle_source_directory(year)
-    File.join('src', "year#{year}")
+    File.join('src', year)
   end
 
   def self.puzzle_source_path(year, day)
     day = Day.pad(day)
-    File.join(puzzle_source_directory(year), "day#{day}.rb")
+    File.join(puzzle_source_directory(year), "#{day}.rb")
   end
 
   def self.puzzle_source(year, day)

@@ -1,12 +1,12 @@
 # Manage a solution's spec file for a given day
 class PuzzleSpec
   def self.spec_source_directory(year)
-    File.join('spec', "year#{year}")
+    File.join('spec', year)
   end
 
   def self.spec_source_path(year, day)
     day = Day.pad(day)
-    File.join(spec_source_directory(year), "day#{day}_spec.rb")
+    File.join(spec_source_directory(year), "#{day}_spec.rb")
   end
 
   def self.spec_source(year, day)
