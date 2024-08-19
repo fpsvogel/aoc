@@ -48,7 +48,7 @@ class PuzzleSource
       module Year#{year}
         class Day#{day}
           def part1(input)
-            "expected_result"
+            nil
           end
 
           def part2(input)
