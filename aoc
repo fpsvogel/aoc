@@ -13,8 +13,8 @@ Dir[solution_files].each { |file| require file }
 
 # The CLI application
 class Aoc < Thor
-  desc 'bootstrap YEAR DAY', 'prepares a sample project for a given day:
-downloads the input, creates a sample source and spec file'
+  desc 'bootstrap YEAR DAY', 'prepares a sample project for a given day and year:
+downloads the input and instructions, creates a sample source and spec file'
   method_option :bootstrap, aliases: '-b'
   def bootstrap(year, day)
     year = "20#{year}" if year.length == 2
@@ -24,52 +24,34 @@ downloads the input, creates a sample source and spec file'
     puts "https://adventofcode.com/#{year}/day/#{day}"
   end
 
-  desc 'instructions YEAR DAY', 'shows instructions for the given day/year'
-  method_option :instructions
+  desc 'instructions YEAR DAY', 'shows instructions for the given day and year'
+  method_option :instructions, aliases: '-i'
   def instructions(year, day)
     year = "20#{year}" if year.length == 2
     instructions = PuzzleInstructions.load(year, day)
     puts instructions
   end
 
-  desc 'run YEAR DAY', 'executes a given day/year'
+  desc 'run YEAR DAY [PART]', 'executes a given day, year, and optionally part'
   method_option :run_day, aliases: '-r'
-  def run_day(year, day)
+  def run_day(year, day, part = :both)
     year = "20#{year}" if year.length == 2
     puzzle = PuzzleSource.create_puzzle(year, day)
     input_path = PuzzleInput.load(year, day)
     url = "https://adventofcode.com/#{year}/day/#{day}"
-    PuzzleSource.run_part('Part One') { puzzle.part_1(input_path) }
-    puts
-    PuzzleSource.run_part('Part Two') { puzzle.part_2(input_path) }
-    puts
+    if part == "1" || part == :both
+      PuzzleSource.run_part('Part One') { puzzle.part_1(input_path) }
+      puts
+    end
+    if part == "2" || part == :both
+      PuzzleSource.run_part('Part Two') { puzzle.part_2(input_path) }
+      puts
+    end
     puts url
   end
 
-  desc 'one YEAR DAY', 'executes the part_1 for a given day/year'
-  method_option :one
-  def one(year, day)
-    year = "20#{year}" if year.length == 2
-    puzzle = PuzzleSource.create_puzzle(year, day)
-    input_path = PuzzleInput.load(year, day)
-    url = "https://adventofcode.com/#{year}/day/#{day}"
-    PuzzleSource.run_part('Part One') { puzzle.part_1(input_path) }
-    puts url
-  end
-
-  desc 'two YEAR DAY', 'executes the part_2 for a given day/year'
-  method_option :two
-  def two(year, day)
-    year = "20#{year}" if year.length == 2
-    puzzle = PuzzleSource.create_puzzle(year, day)
-    input_path = PuzzleInput.load(year, day)
-    url = "https://adventofcode.com/#{year}/day/#{day}"
-    PuzzleSource.run_part('Part Two') { puzzle.part_2(input_path) }
-    puts url
-  end
-
-  desc 'submit YEAR DAY', 'submits an answer for a given day/year'
-  method_option :submit
+  desc 'submit YEAR DAY PART', 'submits an answer for a given day, year, and part'
+  method_option :submit, aliases: '-s'
   def submit(year, day, part)
     year = "20#{year}" if year.length == 2
     puzzle = PuzzleSource.create_puzzle(year, day)
