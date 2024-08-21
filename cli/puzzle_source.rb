@@ -12,7 +12,7 @@ class PuzzleSource
     end
   end
 
-  def self.run_part(part_name, url)
+  def self.run_part(part_name)
     has_result = false
     t = Benchmark.realtime do
       answer = yield
@@ -28,7 +28,6 @@ class PuzzleSource
 
     if has_result
       puts "(obtained in #{t} seconds)"
-      puts url
     end
   end
 

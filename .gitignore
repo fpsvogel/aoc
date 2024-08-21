@@ -1,4 +1,5 @@
 .idea/
 input/**/*
+instructions/**/*
 Gemfile.lock
 .env

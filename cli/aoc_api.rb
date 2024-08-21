@@ -17,6 +17,10 @@ class AocApi
     self.class.get("/#{year}/day/#{day}/input", headers:)
   end
 
+  def instructions(year, day)
+    self.class.get("/#{year}/day/#{day}", headers: headers.except('Cookie'))
+  end
+
   def submit(year, day, part, answer)
     response = self.class.post(
       "/#{year}/day/#{day}/answer",
