@@ -3,7 +3,7 @@ class PuzzleInput
   def self.load(year, day)
     file_path = puzzle_path(year, day)
     download(year, day) if !File.exist? file_path
-    File.read(file_path)
+    file_path
   end
 
   def self.create_required_directories(year)

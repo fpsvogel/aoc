@@ -29,29 +29,29 @@ downloads the input, creates a sample source and spec file'
   method_option :run_day, aliases: '-r'
   def run_day(year, day)
     puzzle = PuzzleSource.create_puzzle(year, day)
-    input = PuzzleInput.load(year, day)
+    input_path = PuzzleInput.load(year, day)
     url = "https://adventofcode.com/#{year}/day/#{day}"
-    PuzzleSource.run_part('Part One', url) { puzzle.part_1(input) }
+    PuzzleSource.run_part('Part One', url) { puzzle.part_1(input_path) }
     puts
-    PuzzleSource.run_part('Part Two', url) { puzzle.part_2(input) }
+    PuzzleSource.run_part('Part Two', url) { puzzle.part_2(input_path) }
   end
 
   desc 'one YEAR DAY', 'executes the part_1 for a given day/year'
   method_option :one
   def one(year, day)
     puzzle = PuzzleSource.create_puzzle(year, day)
-    input = PuzzleInput.load(year, day)
+    input_path = PuzzleInput.load(year, day)
     url = "https://adventofcode.com/#{year}/day/#{day}"
-    PuzzleSource.run_part('Part One', url) { puzzle.part_1(input) }
+    PuzzleSource.run_part('Part One', url) { puzzle.part_1(input_path) }
   end
 
   desc 'two YEAR DAY', 'executes the part_2 for a given day/year'
   method_option :two
   def two(year, day)
     puzzle = PuzzleSource.create_puzzle(year, day)
-    input = PuzzleInput.load(year, day)
+    input_path = PuzzleInput.load(year, day)
     url = "https://adventofcode.com/#{year}/day/#{day}"
-    PuzzleSource.run_part('Part Two', url) { puzzle.part_2(input) }
+    PuzzleSource.run_part('Part Two', url) { puzzle.part_2(input_path) }
   end
 end
 

@@ -47,11 +47,15 @@ class PuzzleSource
     <<~TPL
       module Year#{year}
         class Day#{day}
-          def part_1(input)
+          def part_1(input_path)
+            lines = File.readlines(input_path)
+
             nil
           end
 
-          def part_2(input)
+          def part_2(input_path)
+            lines = File.readlines(input_path)
+
             nil
           end
         end
