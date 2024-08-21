@@ -15,11 +15,11 @@ class PuzzleSource
   def self.run_part(part_name, url)
     has_result = false
     t = Benchmark.realtime do
-      solution = yield
-      if !solution.nil?
+      answer = yield
+      if !answer.nil?
         puts "Result for #{part_name}:"
-        puts solution
-        Clipboard.copy(solution)
+        puts answer
+        Clipboard.copy(answer)
         has_result = true
       else
         puts "no result for #{part_name}"

@@ -17,15 +17,15 @@ class PuzzleInput
   end
 
   def self.download(year, day)
-    aoc_api = AocApi.new(year, ENV['AOC_COOKIE'])
-    content = aoc_api.day(day)
-    save_puzzle(year, day, content)
+    aoc_api = AocApi.new(ENV['AOC_COOKIE'])
+    input = aoc_api.input(year, day)
+    save_puzzle(year, day, input)
   end
 
-  def self.save_puzzle(year, day, content)
+  def self.save_puzzle(year, day, input)
     create_required_directories(year)
     skip_if_exists(puzzle_path(year, day)) do
-      File.open(puzzle_path(year, day), 'w') { |f| f.write content }
+      File.open(puzzle_path(year, day), 'w') { |f| f.write input }
     end
   end
 

@@ -1,8 +1,11 @@
 #!/usr/bin/env ruby
+
 require 'httparty'
 require 'dotenv/load'
 require 'thor'
 require 'benchmark'
+require 'reverse_markdown'
+
 cli_files = File.join(File.dirname(__FILE__), 'cli', '*.rb')
 solution_files = File.join(File.dirname(__FILE__), 'solutions', '**', '*.rb')
 Dir[cli_files].each { |file| require file }
@@ -52,6 +55,22 @@ downloads the input, creates a sample source and spec file'
     input_path = PuzzleInput.load(year, day)
     url = "https://adventofcode.com/#{year}/day/#{day}"
     PuzzleSource.run_part('Part Two', url) { puzzle.part_2(input_path) }
+  end
+
+  desc 'submit YEAR DAY', 'submits an answer for a given day/year'
+  method_option :submit
+  def submit(year, day, part)
+    puzzle = PuzzleSource.create_puzzle(year, day)
+    return unless puzzle
+    input_path = PuzzleInput.load(year, day)
+    answer = puzzle.send(:"part_#{part}", input_path)
+
+    aoc_api = AocApi.new(ENV['AOC_COOKIE'])
+    response = aoc_api.submit(year, day, part, answer)
+    message = response.match(/(?<=<article>).+(?=<\/article>)/).to_s.strip
+    markdown_message = ReverseMarkdown.convert(message)
+
+    puts markdown_message
   end
 end
 
