@@ -1,10 +1,11 @@
 #!/usr/bin/env ruby
-
+require "debug"
 require 'httparty'
 require 'dotenv/load'
 require 'thor'
 require 'benchmark'
 require 'reverse_markdown'
+require 'yaml'
 
 cli_files = File.join(File.dirname(__FILE__), 'cli', '*.rb')
 solution_files = File.join(File.dirname(__FILE__), 'solutions', '**', '*.rb')
@@ -13,6 +14,8 @@ Dir[solution_files].each { |file| require file }
 
 # The CLI application
 class Aoc < Thor
+  CONFIG = YAML.load(File.read("config.yml"))
+
   desc 'bootstrap YEAR DAY', 'prepares a sample project for a given day and year:
 downloads the input and instructions, creates a sample source and spec file'
   method_option :bootstrap, aliases: '-b'
@@ -28,8 +31,9 @@ downloads the input and instructions, creates a sample source and spec file'
   method_option :instructions, aliases: '-i'
   def instructions(year, day)
     year = "20#{year}" if year.length == 2
-    instructions = PuzzleInstructions.load(year, day)
-    puts instructions
+    editor_command = CONFIG["editor_command"]
+    instructions_path = PuzzleInstructions.load(year, day)
+    `#{editor_command} #{instructions_path}`
   end
 
   desc 'run YEAR DAY [PART]', 'executes a given day, year, and optionally part'

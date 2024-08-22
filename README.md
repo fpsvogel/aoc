@@ -6,5 +6,4 @@ The included CLI utility is [AoC-rb](https://github.com/Keirua/aoc-cli) with a f
 
 
 - `aoc submit YEAR DAY PART`: submits the answer of a puzzle, for part `1` or `2`.
-- `aoc instructions YEAR DAY`: outputs the instructions for a puzzle.
-  - Or you can open the file `instructions/ddyy.md` where `dd` is the day and `yy` is the year (last two digits).
+- `aoc instructions YEAR DAY`: downloads the instructions for a puzzle and shows it in your editor (specified by `editor_command` in config.yml).
