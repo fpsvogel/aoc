@@ -21,28 +21,34 @@ downloads the input and instructions, creates a sample source and spec file'
   method_option :bootstrap, aliases: '-b'
   def bootstrap(year, day)
     year = "20#{year}" if year.length == 2
+
     PuzzleInput.download(year, day)
     PuzzleInstructions.download(year, day)
     Template.create_templates(year, day)
     puts "https://adventofcode.com/#{year}/day/#{day}"
+
+    instructions_path = PuzzleInstructions.load(year, day)
+    `#{CONFIG["editor_command"]} #{instructions_path}`
   end
 
   desc 'instructions YEAR DAY', 'shows instructions for the given day and year'
   method_option :instructions, aliases: '-i'
   def instructions(year, day)
     year = "20#{year}" if year.length == 2
-    editor_command = CONFIG["editor_command"]
+
     instructions_path = PuzzleInstructions.load(year, day)
-    `#{editor_command} #{instructions_path}`
+    `#{CONFIG["editor_command"]} #{instructions_path}`
   end
 
   desc 'run YEAR DAY [PART]', 'executes a given day, year, and optionally part'
   method_option :run_day, aliases: '-r'
   def run_day(year, day, part = :both)
     year = "20#{year}" if year.length == 2
+
     puzzle = PuzzleSource.create_puzzle(year, day)
     input_path = PuzzleInput.load(year, day)
     url = "https://adventofcode.com/#{year}/day/#{day}"
+
     if part == "1" || part == :both
       PuzzleSource.run_part('Part One') { puzzle.part_1(input_path) }
       puts
@@ -51,6 +57,7 @@ downloads the input and instructions, creates a sample source and spec file'
       PuzzleSource.run_part('Part Two') { puzzle.part_2(input_path) }
       puts
     end
+
     puts url
   end
 
@@ -58,6 +65,7 @@ downloads the input and instructions, creates a sample source and spec file'
   method_option :submit, aliases: '-s'
   def submit(year, day, part)
     year = "20#{year}" if year.length == 2
+
     puzzle = PuzzleSource.create_puzzle(year, day)
     return unless puzzle
     input_path = PuzzleInput.load(year, day)
