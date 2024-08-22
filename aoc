@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-require "debug"
+
 require 'httparty'
 require 'dotenv/load'
 require 'thor'

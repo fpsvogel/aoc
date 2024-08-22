@@ -41,11 +41,10 @@ class PuzzleSource
   end
 
   def self.puzzle_source(year, day)
-    day = Day.pad(day)
-
     <<~TPL
+      # https://adventofcode.com/#{year}/day/#{day}"
       module Year#{year}
-        class Day#{day}
+        class Day#{Day.pad(day)}
           def part_1(input_path)
             lines = File.readlines(input_path)
 
