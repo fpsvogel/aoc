@@ -4,12 +4,10 @@ require 'clipboard'
 # Manage a solution's source file for a given day
 class PuzzleSource
   def self.create_puzzle(year, day)
-    padded_day = Day.pad(day)
-    begin
-      Module.const_get("Year#{year}").const_get("Day#{padded_day}").new
-    rescue NameError
-      puts 'There is no solution for this puzzle'
-    end
+    padded_day = day.rjust(2, "0")
+    Module.const_get("Year#{year}").const_get("Day#{padded_day}").new
+  rescue NameError
+    puts 'There is no solution for this puzzle'
   end
 
   def self.run_part(part_name)
@@ -36,15 +34,17 @@ class PuzzleSource
   end
 
   def self.puzzle_source_path(year, day)
-    day = Day.pad(day)
-    File.join(puzzle_source_directory(year), "#{day}.rb")
+    padded_day = day.rjust(2, "0")
+    File.join(puzzle_source_directory(year), "#{padded_day}.rb")
   end
 
   def self.puzzle_source(year, day)
+    padded_day = day.rjust(2, "0")
+
     <<~TPL
       # https://adventofcode.com/#{year}/day/#{day}"
       module Year#{year}
-        class Day#{Day.pad(day)}
+        class Day#{padded_day}
           def part_1(input_path)
             lines = File.readlines(input_path)
 

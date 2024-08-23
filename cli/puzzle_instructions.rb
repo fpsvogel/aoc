@@ -15,8 +15,9 @@ class PuzzleInstructions
   end
 
   def self.instructions_file_path(year, day)
-    day = Day.pad(day)
-    File.join("instructions", year, "#{day}#{year.to_s[-2..]}.md")
+    padded_day = day.rjust(2, "0")
+    year_last_two = year.to_s[-2..]
+    File.join("instructions", year, "#{padded_day}#{year_last_two}.md")
   end
 
   def self.download(year, day)

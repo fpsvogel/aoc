@@ -5,15 +5,15 @@ class PuzzleSpec
   end
 
   def self.spec_source_path(year, day)
-    day = Day.pad(day)
-    File.join(spec_source_directory(year), "#{day}_spec.rb")
+    padded_day = day.rjust(2, "0")
+    File.join(spec_source_directory(year), "#{padded_day}_spec.rb")
   end
 
   def self.spec_source(year, day)
-    day = Day.pad(day)
+    padded_day = day.rjust(2, "0")
 
     <<~TPL
-      RSpec.describe Year#{year}::Day#{day} do
+      RSpec.describe Year#{year}::Day#{padded_day} do
         let(:input) {
           <<~IN
             something

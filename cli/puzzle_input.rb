@@ -12,8 +12,8 @@ class PuzzleInput
   end
 
   def self.input_file_path(year, day)
-    day = Day.pad(day)
-    File.join("input", year, "#{day}.txt")
+    padded_day = day.rjust(2, "0")
+    File.join("input", year, "#{padded_day}.txt")
   end
 
   def self.download(year, day)
