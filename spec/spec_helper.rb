@@ -1,4 +1,4 @@
-solution_files = File.join(File.dirname(__FILE__), '..', 'solutions', '**', '*.rb')
+solution_files = File.join(File.dirname(__FILE__), "..", "solutions", "**", "*.rb")
 Dir[solution_files].each { |f| require f }
 
 # In tests, an input string is used instead of a path to the input file, so here

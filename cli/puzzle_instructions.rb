@@ -21,7 +21,7 @@ class PuzzleInstructions
   end
 
   def self.download(year, day)
-    aoc_api = AocApi.new(ENV['AOC_COOKIE'])
+    aoc_api = AocApi.new(ENV["AOC_COOKIE"])
     whole_page = aoc_api.instructions(year, day)
     instructions = whole_page.match(/(?<=<main>).+(?=<\/main>)/m).to_s
     markdown_instructions = ReverseMarkdown.convert(instructions).strip
@@ -30,6 +30,6 @@ class PuzzleInstructions
 
   def self.save_instructions_file(year, day, input)
     create_required_directories(year)
-    File.open(instructions_file_path(year, day), 'w') { |f| f.write input }
+    File.open(instructions_file_path(year, day), "w") { |f| f.write input }
   end
 end

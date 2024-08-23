@@ -1,14 +1,14 @@
 #!/usr/bin/env ruby
 
-require 'httparty'
-require 'dotenv/load'
-require 'thor'
-require 'benchmark'
-require 'reverse_markdown'
-require 'yaml'
+require "httparty"
+require "dotenv/load"
+require "thor"
+require "benchmark"
+require "reverse_markdown"
+require "yaml"
 
-cli_files = File.join(File.dirname(__FILE__), 'cli', '*.rb')
-solution_files = File.join(File.dirname(__FILE__), 'solutions', '**', '*.rb')
+cli_files = File.join(File.dirname(__FILE__), "cli", "*.rb")
+solution_files = File.join(File.dirname(__FILE__), "solutions", "**", "*.rb")
 Dir[cli_files].each { |file| require file }
 Dir[solution_files].each { |file| require file }
 
@@ -16,7 +16,7 @@ Dir[solution_files].each { |file| require file }
 class Aoc < Thor
   CONFIG = YAML.load(File.read("config.yml"))
 
-  # TODO add a command 'others YEAR DAY PART' that downloads solutions from
+  # TODO add a command "others YEAR DAY PART" that downloads solutions from
   # these repos, saves them into a file in a .gitignored directory, and opens
   # the file.
   #
@@ -29,13 +29,13 @@ class Aoc < Thor
   # Note: Not all of these are complete, e.g. ZogStriP's are only Part 2
   # solutions and erikw's do not include Ruby solutions after 2021. Also,
   # different file naming schemes will need to be accounted for, and each repo
-  # will need associated regex-based postprocessing rules wherever they don't
+  # will need associated regex-based postprocessing rules wherever they don"t
   # simple have one solution per file (e.g. ahorner includes both parts in the
   # same file, and ZogStriP includes the input in the same file).
 
-  desc 'bootstrap YEAR DAY', 'prepares a sample project for a given day and year:
-downloads the input and instructions, creates a sample source and spec file'
-  method_option :bootstrap, aliases: '-b'
+  desc "bootstrap YEAR DAY", "prepares a sample project for a given day and year:
+downloads the input and instructions, creates a sample source and spec file"
+  method_option :bootstrap, aliases: "-b"
   def bootstrap(year, day)
     year = "20#{year}" if year.length == 2
 
@@ -48,8 +48,8 @@ downloads the input and instructions, creates a sample source and spec file'
     `#{CONFIG["editor_command"]} #{instructions_path}`
   end
 
-  desc 'instructions YEAR DAY', 'shows instructions for the given day and year'
-  method_option :instructions, aliases: '-i'
+  desc "instructions YEAR DAY", "shows instructions for the given day and year"
+  method_option :instructions, aliases: "-i"
   def instructions(year, day)
     year = "20#{year}" if year.length == 2
 
@@ -63,8 +63,8 @@ downloads the input and instructions, creates a sample source and spec file'
   #   #part_1_first     # for my initial attempt
   #   #part_1_concise   # for a code-golf type solution
   #   #part_1_alt       # for an alternative approach
-  desc 'run YEAR DAY [PART]', 'executes a given day, year, and optionally part'
-  method_option :run_day, aliases: '-r'
+  desc "run YEAR DAY [PART]", "executes a given day, year, and optionally part"
+  method_option :run_day, aliases: "-r"
   def run_day(year, day, part = :both)
     year = "20#{year}" if year.length == 2
 
@@ -73,19 +73,19 @@ downloads the input and instructions, creates a sample source and spec file'
     url = "https://adventofcode.com/#{year}/day/#{day}"
 
     if part == "1" || part == :both
-      PuzzleSource.run_part('Part One') { puzzle.part_1(input_path) }
+      PuzzleSource.run_part("Part One") { puzzle.part_1(input_path) }
       puts
     end
     if part == "2" || part == :both
-      PuzzleSource.run_part('Part Two') { puzzle.part_2(input_path) }
+      PuzzleSource.run_part("Part Two") { puzzle.part_2(input_path) }
       puts
     end
 
     puts url
   end
 
-  desc 'submit YEAR DAY PART', 'submits an answer for a given day, year, and part'
-  method_option :submit, aliases: '-s'
+  desc "submit YEAR DAY PART", "submits an answer for a given day, year, and part"
+  method_option :submit, aliases: "-s"
   def submit(year, day, part)
     year = "20#{year}" if year.length == 2
 
@@ -94,7 +94,7 @@ downloads the input and instructions, creates a sample source and spec file'
     input_path = PuzzleInput.load(year, day)
     answer = puzzle.send(:"part_#{part}", input_path)
 
-    aoc_api = AocApi.new(ENV['AOC_COOKIE'])
+    aoc_api = AocApi.new(ENV["AOC_COOKIE"])
     response = aoc_api.submit(year, day, part, answer)
     message = response.match(/(?<=<article>).+(?=<\/article>)/).to_s.strip
     markdown_message = ReverseMarkdown.convert(message)
@@ -110,5 +110,5 @@ downloads the input and instructions, creates a sample source and spec file'
 end
 
 Dotenv.load("#{__dir__}/.env")
-Dotenv.require_keys('AOC_COOKIE')
+Dotenv.require_keys("AOC_COOKIE")
 Aoc.start

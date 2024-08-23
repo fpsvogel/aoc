@@ -1,5 +1,5 @@
-require 'benchmark'
-require 'clipboard'
+require "benchmark"
+require "clipboard"
 
 # Manage a solution's source file for a given day
 class PuzzleSource
@@ -7,7 +7,7 @@ class PuzzleSource
     padded_day = day.rjust(2, "0")
     Module.const_get("Year#{year}").const_get("Day#{padded_day}").new
   rescue NameError
-    puts 'There is no solution for this puzzle'
+    puts "There is no solution for this puzzle"
   end
 
   def self.run_part(part_name)
@@ -30,7 +30,7 @@ class PuzzleSource
   end
 
   def self.puzzle_source_directory(year)
-    File.join('solutions', year)
+    File.join("solutions", year)
   end
 
   def self.puzzle_source_path(year, day)
