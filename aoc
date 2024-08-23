@@ -16,6 +16,23 @@ Dir[solution_files].each { |file| require file }
 class Aoc < Thor
   CONFIG = YAML.load(File.read("config.yml"))
 
+  # TODO add a command 'others YEAR DAY PART' that downloads solutions from
+  # these repos, saves them into a file in a .gitignored directory, and opens
+  # the file.
+  #
+  # https://github.com/eregon/adventofcode
+  # https://github.com/gchan/advent-of-code-ruby
+  # https://github.com/ahorner/advent-of-code/tree/main/lib
+  # https://github.com/ZogStriP/adventofcode
+  # https://github.com/erikw/advent-of-code-solutions
+  #
+  # Note: Not all of these are complete, e.g. ZogStriP's are only Part 2
+  # solutions and erikw's do not include Ruby solutions after 2021. Also,
+  # different file naming schemes will need to be accounted for, and each repo
+  # will need associated regex-based postprocessing rules wherever they don't
+  # simple have one solution per file (e.g. ahorner includes both parts in the
+  # same file, and ZogStriP includes the input in the same file).
+
   desc 'bootstrap YEAR DAY', 'prepares a sample project for a given day and year:
 downloads the input and instructions, creates a sample source and spec file'
   method_option :bootstrap, aliases: '-b'
@@ -40,6 +57,12 @@ downloads the input and instructions, creates a sample source and spec file'
     `#{CONFIG["editor_command"]} #{instructions_path}`
   end
 
+  # TODO add a [VARIANT] arg, so that additional versions of the same solution
+  # can co-exist as additional methods, e.g.:
+  #
+  #   #part_1_first     # for my initial attempt
+  #   #part_1_concise   # for a code-golf type solution
+  #   #part_1_alt       # for an alternative approach
   desc 'run YEAR DAY [PART]', 'executes a given day, year, and optionally part'
   method_option :run_day, aliases: '-r'
   def run_day(year, day, part = :both)
