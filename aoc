@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
 
+require "fileutils"
+require "clipboard"
 require "httparty"
 require "dotenv/load"
 require "thor"
@@ -12,10 +14,10 @@ solution_files = File.join(File.dirname(__FILE__), "solutions", "**", "*.rb")
 Dir[cli_files].each { |file| require file }
 Dir[solution_files].each { |file| require file }
 
+CONFIG = YAML.load(File.read("config.yml"))
+
 # The CLI application
 class Aoc < Thor
-  CONFIG = YAML.load(File.read("config.yml"))
-
   # TODO add a command "others YEAR DAY PART" that downloads solutions from
   # these repos, saves them into a file in a .gitignored directory, and opens
   # the file.
@@ -39,12 +41,12 @@ downloads the input and instructions, creates a sample source and spec file"
   def bootstrap(year, day)
     year = "20#{year}" if year.length == 2
 
-    PuzzleInput.download(year, day)
-    PuzzleInstructions.download(year, day)
-    Template.create_templates(year, day)
+    InputFile.download(year, day, notify_exists: true)
+    instructions_path = InstructionsFile.download(year, day, notify_exists: true)
+    SourceFile.create(year, day)
+    SpecFile.create(year, day)
     puts "https://adventofcode.com/#{year}/day/#{day}"
 
-    instructions_path = PuzzleInstructions.load(year, day)
     `#{CONFIG["editor_command"]} #{instructions_path}`
   end
 
@@ -53,7 +55,7 @@ downloads the input and instructions, creates a sample source and spec file"
   def instructions(year, day)
     year = "20#{year}" if year.length == 2
 
-    instructions_path = PuzzleInstructions.load(year, day)
+    instructions_path = InstructionsFile.download(year, day)
     `#{CONFIG["editor_command"]} #{instructions_path}`
   end
 
@@ -68,16 +70,16 @@ downloads the input and instructions, creates a sample source and spec file"
   def run_day(year, day, part = :both)
     year = "20#{year}" if year.length == 2
 
-    puzzle = PuzzleSource.create_puzzle(year, day)
-    input_path = PuzzleInput.load(year, day)
+    solution = Runner.load_solution(year, day)
+    input_path = InputFile.download(year, day)
     url = "https://adventofcode.com/#{year}/day/#{day}"
 
     if part == "1" || part == :both
-      PuzzleSource.run_part("Part One") { puzzle.part_1(input_path) }
+      Runner.run_part("Part One") { solution.part_1(input_path) }
       puts
     end
     if part == "2" || part == :both
-      PuzzleSource.run_part("Part Two") { puzzle.part_2(input_path) }
+      Runner.run_part("Part Two") { solution.part_2(input_path) }
       puts
     end
 
@@ -89,10 +91,10 @@ downloads the input and instructions, creates a sample source and spec file"
   def submit(year, day, part)
     year = "20#{year}" if year.length == 2
 
-    puzzle = PuzzleSource.create_puzzle(year, day)
-    return unless puzzle
-    input_path = PuzzleInput.load(year, day)
-    answer = puzzle.send(:"part_#{part}", input_path)
+    solution = Runner.load_solution(year, day)
+    return unless solution
+    input_path = InputFile.download(year, day)
+    answer = solution.send(:"part_#{part}", input_path)
 
     aoc_api = AocApi.new(ENV["AOC_COOKIE"])
     response = aoc_api.submit(year, day, part, answer)
@@ -104,7 +106,7 @@ downloads the input and instructions, creates a sample source and spec file"
     # Re-download instructions when Part 2 may be unlocked.
     # TODO add a condition checking markdown_message for successful submission.
     if part == "1"
-      PuzzleInstructions.download(year, day)
+      InstructionsFile.download(year, day)
     end
   end
 end

@@ -1,15 +1,19 @@
-# Manage a solution's spec file for a given day
-class PuzzleSpec
-  def self.spec_source_directory(year)
-    File.join("spec", year)
-  end
+class SpecFile
+  def self.create(year, day)
+    spec_directory = File.join("spec", year)
+    FileUtils.mkdir_p(spec_directory) if !Dir.exist?(spec_directory)
 
-  def self.spec_source_path(year, day)
     padded_day = day.rjust(2, "0")
-    File.join(spec_source_directory(year), "#{padded_day}_spec.rb")
+    file_path = File.join(spec_directory, "#{padded_day}_spec.rb")
+
+    if File.exist?(file_path)
+      puts "#{file_path} already exists, skipping"
+    else
+      File.write(file_path, source(year, day))
+    end
   end
 
-  def self.spec_source(year, day)
+  def self.source(year, day)
     padded_day = day.rjust(2, "0")
 
     <<~TPL
