@@ -5,7 +5,7 @@ require "reverse_markdown"
 class PuzzleInstructions
   def self.load(year, day)
     file_path = instructions_file_path(year, day)
-    download(year, day) if !File.exist? file_path
+    download(year, day)
     file_path
   end
 
@@ -29,16 +29,6 @@ class PuzzleInstructions
 
   def self.save_instructions_file(year, day, input)
     create_required_directories(year)
-    skip_if_exists(instructions_file_path(year, day)) do
-      File.open(instructions_file_path(year, day), 'w') { |f| f.write input }
-    end
-  end
-
-  def self.skip_if_exists(file)
-    if !File.exist? file
-      yield
-    else
-      puts "#{file} already exists, skipping"
-    end
+    File.open(instructions_file_path(year, day), 'w') { |f| f.write input }
   end
 end
