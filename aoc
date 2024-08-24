@@ -50,15 +50,6 @@ downloads the input and instructions, creates a sample source and spec file"
     `#{CONFIG["editor_command"]} #{instructions_path}`
   end
 
-  desc "instructions YEAR DAY", "shows instructions for the given day and year"
-  method_option :instructions, aliases: "-i"
-  def instructions(year, day)
-    year = "20#{year}" if year.length == 2
-
-    instructions_path = InstructionsFile.download(year, day)
-    `#{CONFIG["editor_command"]} #{instructions_path}`
-  end
-
   # TODO add a [VARIANT] arg, so that additional versions of the same solution
   # can co-exist as additional methods, e.g.:
   #
