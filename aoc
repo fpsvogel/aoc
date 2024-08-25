@@ -18,23 +18,6 @@ CONFIG = YAML.load(File.read("config.yml"))
 
 # The CLI application
 class Aoc < Thor
-  # TODO add a command "others YEAR DAY PART" that downloads solutions from
-  # these repos, saves them into a file in a .gitignored directory, and opens
-  # the file.
-  #
-  # https://github.com/eregon/adventofcode
-  # https://github.com/gchan/advent-of-code-ruby
-  # https://github.com/ahorner/advent-of-code/tree/main/lib
-  # https://github.com/ZogStriP/adventofcode
-  # https://github.com/erikw/advent-of-code-solutions
-  #
-  # Note: Not all of these are complete, e.g. ZogStriP's are only Part 2
-  # solutions and erikw's do not include Ruby solutions after 2021. Also,
-  # different file naming schemes will need to be accounted for, and each repo
-  # will need associated regex-based postprocessing rules wherever they don"t
-  # simple have one solution per file (e.g. ahorner includes both parts in the
-  # same file, and ZogStriP includes the input in the same file).
-
   desc "bootstrap YEAR DAY", "prepares a sample project for a given day and year:
 downloads the input and instructions, creates a sample source and spec file"
   method_option :bootstrap, aliases: "-b"
@@ -97,8 +80,31 @@ downloads the input and instructions, creates a sample source and spec file"
     # Re-download instructions when Part 2 may be unlocked.
     # TODO add a condition checking markdown_message for successful submission.
     if part == "1"
-      InstructionsFile.download(year, day)
+      InstructionsFile.download(year, day, overwrite: true)
     end
+  end
+
+  desc "others YEAR DAY PART", "downloads and shows other people's solutions"
+  method_option :others, aliases: "-o"
+  def others(year, day, part)
+    year = "20#{year}" if year.length == 2
+
+    padded_day = day.rjust(2, "0")
+    file_path = File.join("others", year, "#{padded_day}.rb")
+
+    InstructionsFile.download(year, day, notify_exists: true)
+
+    if File.exist?(file_path)
+      puts "#{file_path} already exists, skipping"
+    else
+      year_directory = File.join("others", year)
+      FileUtils.mkdir_p(year_directory) if !Dir.exist?(year_directory)
+
+      other_solutions = OtherSolutionsApi.new.other_solutions(year, day, part)
+      File.write(file_path, other_solutions)
+    end
+
+    `#{CONFIG["editor_command"]} #{file_path}`
   end
 end
 

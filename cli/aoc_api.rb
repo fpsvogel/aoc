@@ -1,4 +1,3 @@
-# HTTP API for downloading puzzles
 class AocApi
   include HTTParty
   base_uri "https://adventofcode.com"
@@ -6,11 +5,10 @@ class AocApi
   private attr_reader :headers
 
   def initialize(session)
-    @headers =
-      {
-        "Cookie" => "session=#{session}",
-        "User-Agent" => "github.com/Keirua/aoc-cli by clement@keiruaprod.fr"
-      }
+    @headers = {
+      "Cookie" => "session=#{session}",
+      "User-Agent" => "github.com/fpsvogel/ruby-advent-of-code",
+    }
   end
 
   def input(year, day)

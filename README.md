@@ -2,9 +2,14 @@
 
 These are my Advent of Code solutions in Ruby.
 
-The included CLI utility is [AoC-rb](https://github.com/Keirua/aoc-cli) with a few tweaks, as well as some added commands:
+The included CLI utility is based on [AoC-rb](https://github.com/Keirua/aoc-cli), with some additions. These are the commands:
 
-- `aoc submit YEAR DAY PART`: submits the answer of a puzzle, for part `1` or `2`.
-- `aoc instructions YEAR DAY`: downloads the instructions for a puzzle and shows it in your editor (specified by `editor_command` in config.yml).
-
-[aoc-cli](https://github.com/apexatoll/aoc-cli) is another CLI tool that has these features built in. I chose AoC-rb only because it's simpler (having fewer features) and therefore easier to customize.
+- `aoc bootstrap YEAR DAY`: downloads the input and instructions files, and creates a source file and a spec file for the given day.
+- `aoc run YEAR DAY [PART]`: runs part `1` or `2` of the given day.
+- `aoc submit YEAR DAY PART`: runs part `1` or `2` of the given day and submits the resulting answer.
+- `aoc others YEAR DAY PART`: downloads and shows other people's solutions, from these repos:
+  - <https://github.com/eregon/adventofcode>
+  - <https://github.com/gchan/advent-of-code-ruby>
+  - <https://github.com/ahorner/advent-of-code>
+  - <https://github.com/ZogStriP/adventofcode>
+  - <https://github.com/erikw/advent-of-code-solutions>
