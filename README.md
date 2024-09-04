@@ -13,3 +13,8 @@ The included CLI utility is based on [AoC-rb](https://github.com/Keirua/aoc-cli)
   - <https://github.com/ahorner/advent-of-code>
   - <https://github.com/ZogStriP/adventofcode>
   - <https://github.com/erikw/advent-of-code-solutions>
+
+## Related Ruby CLI tools
+
+- [AocRb](https://github.com/pacso/aoc_rb)
+- [aoc-cli](https://github.com/apexatoll/aoc-cli)
