@@ -7,7 +7,7 @@ class AocApi
   def initialize(session)
     @headers = {
       "Cookie" => "session=#{session}",
-      "User-Agent" => "github.com/fpsvogel/ruby-advent-of-code",
+      "User-Agent" => "github.com/fpsvogel/ruby-advent-of-code by fps.vogel@gmail.com",
     }
   end
 
@@ -20,9 +20,9 @@ class AocApi
   end
 
   def submit(year, day, part, answer)
-    response = self.class.post(
+    self.class.post(
       "/#{year}/day/#{day}/answer",
-      body: "level=#{part}&answer=#{answer}",
+      body: { level: part, answer: },
       headers:,
     )
   end
