@@ -1,5 +1,5 @@
 class InputFile
-  def self.download(year, day, notify_exists: false)
+  def self.download(year, day, notify_exists: true)
     padded_day = day.rjust(2, "0")
     file_path = File.join("input", year, "#{padded_day}.txt")
 
