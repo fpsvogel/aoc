@@ -26,10 +26,12 @@ downloads the input and instructions, creates a sample source and spec file"
 
     InputFile.download(year, day)
     instructions_path = InstructionsFile.download(year, day)
-    SourceFile.create(year, day)
-    SpecFile.create(year, day)
+    source_path = SourceFile.create(year, day)
+    spec_path = SpecFile.create(year, day)
     puts "https://adventofcode.com/#{year}/day/#{day}"
 
+    `#{CONFIG["editor_command"]} #{source_path}`
+    `#{CONFIG["editor_command"]} #{spec_path}`
     `#{CONFIG["editor_command"]} #{instructions_path}`
   end
 

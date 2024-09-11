@@ -11,6 +11,8 @@ class SpecFile
     else
       File.write(file_path, source(year, day))
     end
+
+    file_path
   end
 
   def self.source(year, day)
