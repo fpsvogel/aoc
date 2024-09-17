@@ -5,7 +5,7 @@ class InstructionsFile
     file_path = File.join("instructions", year, "#{year_last_two}#{padded_day}.md")
 
     if File.exist?(file_path) && !overwrite
-      puts "#{file_path} already exists, skipping"
+      puts "Already exists: #{file_path}"
     else
       year_directory = File.join("instructions", year)
       FileUtils.mkdir_p(year_directory) if !Dir.exist?(year_directory)

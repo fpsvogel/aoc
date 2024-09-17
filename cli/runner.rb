@@ -16,7 +16,7 @@ class Runner
         Clipboard.copy(answer)
         has_result = true
       else
-        puts "no result for #{part_name}"
+        puts "No result for #{part_name}"
       end
     end
 

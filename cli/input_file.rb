@@ -4,7 +4,7 @@ class InputFile
     file_path = File.join("input", year, "#{padded_day}.txt")
 
     if File.exist?(file_path)
-      puts "#{file_path} already exists, skipping" if notify_exists
+      puts "Already exists: #{file_path}" if notify_exists
     else
       year_directory = File.join("input", year)
       FileUtils.mkdir_p(year_directory) if !Dir.exist?(year_directory)

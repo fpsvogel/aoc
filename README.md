@@ -4,9 +4,9 @@ These are my Advent of Code solutions in Ruby.
 
 The included CLI utility is based on [AoC-rb](https://github.com/Keirua/aoc-cli), with some additions. These are the commands:
 
-- `aoc bootstrap YEAR DAY`: downloads the input and instructions files, and creates a source file and a spec file for the given day.
-- `aoc run YEAR DAY [PART]`: runs part `1` or `2` of the given day, or both parts if neither is specified. Optionally (via prompt) submits the answer.
-- `aoc others YEAR DAY PART`: downloads and shows other people's solutions, from these repos:
+- `aoc bootstrap YEAR DAY`: downloads the input and instructions files, and creates a source file and a spec file for the given day. *If no arguments are given, it tries to bootstrap the puzzle that comes after the one that was last committed to Git.*
+- `aoc run YEAR DAY [PART]`: runs part `1` or `2` of the given day, or both parts if neither is specified. Optionally (via prompt) submits the answer. *If no arguments are given, it runs the puzzle that is untracked in Git, if any.*
+- `aoc others YEAR DAY PART`: downloads and shows other people's solutions, from the repos below. *If no arguments are given, it runs the puzzle that is untracked in Git, if any.*
   - <https://github.com/eregon/adventofcode>
   - <https://github.com/gchan/advent-of-code-ruby>
   - <https://github.com/ahorner/advent-of-code>

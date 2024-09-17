@@ -8,6 +8,7 @@ require "thor"
 require "benchmark"
 require "reverse_markdown"
 require "yaml"
+require "date"
 
 cli_files = File.join(File.dirname(__FILE__), "cli", "*.rb")
 solution_files = File.join(File.dirname(__FILE__), "solutions", "**", "*.rb")
@@ -16,13 +17,61 @@ Dir[solution_files].each { |file| require file }
 
 CONFIG = YAML.load(File.read("config.yml"))
 
+def validate_year_and_day(year, day, default_from:)
+  if year && day
+    # The first two digits of the year may be omitted.
+    year = "20#{year}" if year.length == 2
+  elsif (year && !day) || (day && !year)
+    puts "Please specify both year and day, or neither."
+  elsif !year && !day
+    case default_from
+    when :untracked
+      untracked_solutions = `git status -s | grep "^?? solutions/"`
+
+      if untracked_solutions.empty?
+        puts "Could not find an untracked solution file. Please run the command again with the year and day."
+        return
+      end
+
+      match = untracked_solutions.match(/(?<year>\d{4})\/(?<day>\d\d).rb$/)
+      year, day = match[:year], match[:day]
+    when :last_committed
+      last_committed_solution = `git log -n 1 --name-only --pretty=format: solutions`.lines.last
+
+      unless last_committed_solution
+        puts "Could not find a committed solution file. Please `aoc bootstrap` again with the year and day."
+        return nil
+      end
+
+      match = last_committed_solution.match(/(?<year>\d{4})\/(?<day>\d\d).rb$/)
+      year, day = match[:year], match[:day].next
+    else
+      raise "Invalid `default_from` param."
+    end
+  end
+
+  year = Integer(year, exception: false) || (puts "Year must be a number." && (return nil))
+  day = Integer(day, exception: false) || (puts "Day must be a number." && (return nil))
+
+  unless year.between?(2015, Date.today.year)
+    puts "Year must be between 2015 and this year."
+    return nil
+  end
+  unless day.between?(1, 25) && Date.new(year, 12, day) <= Date.today
+    puts "Day must be between 1 and 25, and <= today."
+    return nil
+  end
+
+  [year.to_s, day.to_s]
+end
+
 # The CLI application
 class Aoc < Thor
   desc "bootstrap YEAR DAY", "prepares a sample project for a given day and year:
 downloads the input and instructions, creates a sample source and spec file"
   method_option :bootstrap, aliases: "-b"
-  def bootstrap(year, day)
-    year = "20#{year}" if year.length == 2
+  def bootstrap(year = nil, day = nil)
+    year, day = validate_year_and_day(year, day, default_from: :last_committed)
 
     InputFile.download(year, day)
     instructions_path = InstructionsFile.download(year, day)
@@ -43,35 +92,41 @@ downloads the input and instructions, creates a sample source and spec file"
   #   #part_1_alt       # for an alternative approach
   desc "run YEAR DAY [PART]", "executes a given day, year, and optionally part"
   method_option :run_day, aliases: "-r"
-  def run_day(year, day, part = :both)
-    year = "20#{year}" if year.length == 2
+  def run_day(year = nil, day = nil, part = nil)
+    year, day = validate_year_and_day(year, day, default_from: :untracked) || return
+
+    if part && !%w[1 2].include?(part)
+      puts "The \"part\" argument must be 1 or 2."
+      return
+    end
 
     solution = Runner.load_solution(year, day)
     input_path = InputFile.download(year, day, notify_exists: false)
     url = "https://adventofcode.com/#{year}/day/#{day}"
-    answer = nil
-    part_to_submit = nil
+    answer_1, answer_2 = nil, nil
 
-    if part == "1" || part == :both
-      answer = Runner.run_part("Part One") { solution.part_1(File.new(input_path)) }
+    if part == "1" || part.nil?
+      answer_1 = Runner.run_part("Part One") { solution.part_1(File.new(input_path)) }
       puts
-      part_to_submit = "One"
     end
-    if part == "2" || part == :both
-      answer = Runner.run_part("Part Two") { solution.part_2(File.new(input_path)) }
+    if part == "2" || part.nil?
+      answer_2 = Runner.run_part("Part Two") { solution.part_2(File.new(input_path)) }
       puts
-      part_to_submit = "Two"
     end
 
-    puts "Submit solution to Part #{part_to_submit}? (y/N)"
+    return unless answer_1 || answer_2
+
+    puts "Submit solution to Part #{answer_2 ? "Two" : "One"}? (y/N)"
     submit = STDIN.gets.chomp.downcase
 
     if submit == "y"
       aoc_api = AocApi.new(ENV["AOC_COOKIE"])
-      response = aoc_api.submit(year, day, part, answer)
+      response = aoc_api.submit(year, day, part, answer_2 || answer_1)
       message = response.match(/(?<=<article>).+(?=<\/article>)/).to_s.strip
       markdown_message = ReverseMarkdown.convert(message)
 
+      puts "Submitting #{url}"
+      puts
       puts markdown_message
 
       if part == "1" && markdown_message.start_with?("That's the right answer!")
@@ -80,20 +135,29 @@ downloads the input and instructions, creates a sample source and spec file"
         puts "Downloaded instructions for Part Two."
       end
     end
-
-    puts url
   end
 
   desc "others YEAR DAY PART", "downloads and shows other people's solutions"
   method_option :others, aliases: "-o"
-  def others(year, day, part)
-    year = "20#{year}" if year.length == 2
+  def others(year = nil, day = nil, part = nil)
+    year, day = validate_year_and_day(year, day, default_from: :untracked) || return
+
+    if part && !%w[1 2].include?(part)
+      puts "The \"part\" argument must be 1 or 2."
+      return
+    end
 
     padded_day = day.rjust(2, "0")
+
+    unless part
+      file_1 = File.join("others", year, "#{padded_day}_1.rb")
+      part = File.exist?(file_1) ? "2" : "1"
+    end
+
     file_path = File.join("others", year, "#{padded_day}_#{part}.rb")
 
     if File.exist?(file_path)
-      puts "#{file_path} already exists, skipping"
+      puts "Already exists: #{file_path}"
     else
       year_directory = File.join("others", year)
       FileUtils.mkdir_p(year_directory) if !Dir.exist?(year_directory)

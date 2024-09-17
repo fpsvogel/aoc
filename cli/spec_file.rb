@@ -7,7 +7,7 @@ class SpecFile
     file_path = File.join(spec_directory, "#{padded_day}_spec.rb")
 
     if File.exist?(file_path)
-      puts "#{file_path} already exists, skipping"
+      puts "Already exists: #{file_path}"
     else
       File.write(file_path, source(year, day))
     end
