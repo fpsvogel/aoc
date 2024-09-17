@@ -95,9 +95,7 @@ downloads the input and instructions, creates a sample source and spec file"
     year = "20#{year}" if year.length == 2
 
     padded_day = day.rjust(2, "0")
-    file_path = File.join("others", year, "#{padded_day}.rb")
-
-    InstructionsFile.download(year, day)
+    file_path = File.join("others", year, "#{padded_day}_#{part}.rb")
 
     if File.exist?(file_path)
       puts "#{file_path} already exists, skipping"
