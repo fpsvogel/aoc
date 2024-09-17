@@ -49,44 +49,39 @@ downloads the input and instructions, creates a sample source and spec file"
     solution = Runner.load_solution(year, day)
     input_path = InputFile.download(year, day, notify_exists: false)
     url = "https://adventofcode.com/#{year}/day/#{day}"
+    answer = nil
+    part_to_submit = nil
 
     if part == "1" || part == :both
-      Runner.run_part("Part One") { solution.part_1(File.new(input_path)) }
+      answer = Runner.run_part("Part One") { solution.part_1(File.new(input_path)) }
       puts
+      part_to_submit = "One"
     end
     if part == "2" || part == :both
-      Runner.run_part("Part Two") { solution.part_2(File.new(input_path)) }
+      answer = Runner.run_part("Part Two") { solution.part_2(File.new(input_path)) }
       puts
+      part_to_submit = "Two"
+    end
+
+    puts "Submit solution to Part #{part_to_submit}? (y/N)"
+    submit = STDIN.gets.chomp.downcase
+
+    if submit == "y"
+      aoc_api = AocApi.new(ENV["AOC_COOKIE"])
+      response = aoc_api.submit(year, day, part, answer)
+      message = response.match(/(?<=<article>).+(?=<\/article>)/).to_s.strip
+      markdown_message = ReverseMarkdown.convert(message)
+
+      puts markdown_message
+
+      if part == "1" && markdown_message.start_with?("That's the right answer!")
+        instructions_path = InstructionsFile.download(year, day, overwrite: true)
+        `#{CONFIG["editor_command"]} #{instructions_path}`
+        puts "Downloaded instructions for Part Two."
+      end
     end
 
     puts url
-  end
-
-  desc "submit YEAR DAY PART", "submits an answer for a given day, year, and part"
-  method_option :submit, aliases: "-s"
-  def submit(year, day, part)
-    year = "20#{year}" if year.length == 2
-
-    solution = Runner.load_solution(year, day)
-    return unless solution
-    input_path = InputFile.download(year, day, notify_exists: false)
-    answer = solution.send(:"part_#{part}", File.new(input_path))
-
-    aoc_api = AocApi.new(ENV["AOC_COOKIE"])
-    response = aoc_api.submit(year, day, part, answer)
-    message = response.match(/(?<=<article>).+(?=<\/article>)/).to_s.strip
-    markdown_message = ReverseMarkdown.convert(message)
-
-    puts markdown_message
-
-    # Re-download instructions when Part 2 may be unlocked.
-    # TODO add a condition checking markdown_message for successful submission.
-    # Example markdown_message:
-    # "That's the right answer! You are one gold star closer to finding the sleigh keys. [[Continue to Part Two]](/2021/day/3#part2)"
-    if part == "1"
-      instructions_path = InstructionsFile.download(year, day, overwrite: true)
-      `#{CONFIG["editor_command"]} #{instructions_path}`
-    end
   end
 
   desc "others YEAR DAY PART", "downloads and shows other people's solutions"
