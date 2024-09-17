@@ -51,11 +51,11 @@ downloads the input and instructions, creates a sample source and spec file"
     url = "https://adventofcode.com/#{year}/day/#{day}"
 
     if part == "1" || part == :both
-      Runner.run_part("Part One") { solution.part_1(input_path) }
+      Runner.run_part("Part One") { solution.part_1(File.new(input_path)) }
       puts
     end
     if part == "2" || part == :both
-      Runner.run_part("Part Two") { solution.part_2(input_path) }
+      Runner.run_part("Part Two") { solution.part_2(File.new(input_path)) }
       puts
     end
 
@@ -70,7 +70,7 @@ downloads the input and instructions, creates a sample source and spec file"
     solution = Runner.load_solution(year, day)
     return unless solution
     input_path = InputFile.download(year, day, notify_exists: false)
-    answer = solution.send(:"part_#{part}", input_path)
+    answer = solution.send(:"part_#{part}", File.new(input_path))
 
     aoc_api = AocApi.new(ENV["AOC_COOKIE"])
     response = aoc_api.submit(year, day, part, answer)

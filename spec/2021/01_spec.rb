@@ -1,17 +1,19 @@
 RSpec.describe Year2021::Day01 do
   let(:input) {
-    <<~IN
-      199
-      200
-      208
-      210
-      200
-      207
-      240
-      269
-      260
-      263
-    IN
+    StringIO.new(
+      <<~IN
+        199
+        200
+        208
+        210
+        200
+        207
+        240
+        269
+        260
+        263
+      IN
+    )
   }
 
   it "solves Part One" do

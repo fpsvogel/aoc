@@ -1,13 +1,15 @@
 RSpec.describe Year2021::Day02 do
   let(:input) {
-    <<~IN
-      forward 5
-      down 5
-      forward 8
-      up 3
-      down 8
-      forward 2
-    IN
+    StringIO.new(
+      <<~IN
+        forward 5
+        down 5
+        forward 8
+        up 3
+        down 8
+        forward 2
+      IN
+    )
   }
 
   it "solves Part One" do

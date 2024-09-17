@@ -1,8 +1,9 @@
 # https://adventofcode.com/2021/day/2
 module Year2021
   class Day02
-    def part_1(input_path)
-      moves = File.readlines(input_path)
+    def part_1(input_file)
+      moves = input_file
+        .readlines
         .map(&:split)
         .map { [_1, _2.to_i] }
       x, y = 0, 0
@@ -18,8 +19,9 @@ module Year2021
       x * y
     end
 
-    def part_2(input_path)
-      moves = File.readlines(input_path)
+    def part_2(input_file)
+      moves = input_file
+        .readlines
         .map(&:split)
         .map { [_1, _2.to_i] }
       aim, x, y = 0, 0, 0

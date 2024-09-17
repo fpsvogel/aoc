@@ -21,9 +21,11 @@ class SpecFile
     <<~TPL
       RSpec.describe Year#{year}::Day#{padded_day} do
         let(:input) {
-          <<~IN
-            something
-          IN
+          StringIO.new(
+            <<~IN
+              something
+            IN
+          )
         }
 
         it "solves Part One" do

@@ -22,14 +22,18 @@ class SourceFile
       # https://adventofcode.com/#{year}/day/#{day}"
       module Year#{year}
         class Day#{padded_day}
-          def part_1(input_path)
-            lines = File.readlines(input_path)
+          def part_1(input_file)
+            lines = input_file
+              .read
+              .split("\n")
 
             nil
           end
 
-          def part_2(input_path)
-            lines = File.readlines(input_path)
+          def part_2(input_file)
+            lines = input_file
+              .read
+              .split("\n")
 
             nil
           end
