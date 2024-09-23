@@ -2,7 +2,6 @@ source "https://rubygems.org"
 
 ruby file: ".ruby-version"
 
-gem "clipboard"
 gem "debug"
 gem "dotenv"
 gem "httparty"

@@ -7,21 +7,21 @@ class Runner
   end
 
   def self.run_part(part_name)
-    has_result = false
+    answer = nil
     t = Benchmark.realtime do
       answer = yield
       if !answer.nil?
         puts "Result for #{part_name}:"
         puts answer
-        Clipboard.copy(answer)
-        has_result = true
       else
         puts "No result for #{part_name}"
       end
     end
 
-    if has_result
+    if answer
       puts "(obtained in #{t} seconds)"
     end
+
+    answer
   end
 end

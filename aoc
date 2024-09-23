@@ -1,7 +1,6 @@
 #!/usr/bin/env ruby
 
 require "fileutils"
-require "clipboard"
 require "httparty"
 require "dotenv/load"
 require "thor"
@@ -9,6 +8,7 @@ require "benchmark"
 require "reverse_markdown"
 require "yaml"
 require "date"
+require "debug"
 
 cli_files = File.join(File.dirname(__FILE__), "cli", "*.rb")
 solution_files = File.join(File.dirname(__FILE__), "solutions", "**", "*.rb")
@@ -116,6 +116,7 @@ downloads the input and instructions, creates a sample source and spec file"
 
     return unless answer_1 || answer_2
 
+    puts url
     puts "Submit solution to Part #{answer_2 ? "Two" : "One"}? (y/N)"
     submit = STDIN.gets.chomp.downcase
 
@@ -124,6 +125,8 @@ downloads the input and instructions, creates a sample source and spec file"
       response = aoc_api.submit(year, day, part, answer_2 || answer_1)
       message = response.match(/(?<=<article>).+(?=<\/article>)/).to_s.strip
       markdown_message = ReverseMarkdown.convert(message)
+      # TODO debug when a blank line is output in some success cases
+      debugger if message.blank? || markdown_message.strip.blank?
 
       puts "Submitting #{url}"
       puts
