@@ -17,12 +17,14 @@ Dir[solution_files].each { |file| require file }
 
 CONFIG = YAML.load(File.read("config.yml"))
 
+# TODO in the two validate methods, raise errors to be rescued, instead of returning nil
 def validate_year_and_day(year, day, default_from:)
   if year && day
     # The first two digits of the year may be omitted.
     year = "20#{year}" if year.length == 2
   elsif (year && !day) || (day && !year)
     puts "Please specify both year and day, or neither."
+    return nil
   elsif !year && !day
     case default_from
     when :untracked
@@ -30,7 +32,7 @@ def validate_year_and_day(year, day, default_from:)
 
       if untracked_solutions.empty?
         puts "Could not find an untracked solution file. Please run the command again with the year and day."
-        return
+        return nil
       end
 
       match = untracked_solutions.match(/(?<year>\d{4})\/(?<day>\d\d).rb$/)
@@ -65,6 +67,26 @@ def validate_year_and_day(year, day, default_from:)
   [year.to_s, day.to_s]
 end
 
+def validate_part_and_get_solved(year, day, part)
+  if part && !%w[1 2].include?(part)
+    puts "The \"part\" argument must be 1 or 2."
+    return nil
+  end
+
+  part_solved = nil
+  instructions_file_path = InstructionsFile.path(year, day)
+  if !part && File.exist?(instructions_file_path)
+    instructions = File.read(instructions_file_path)
+    if instructions.include?("Both parts of this puzzle are complete!")
+      part_solved = "1"
+    elsif instructions.include?("## --- Part Two ---")
+      part_solved = "2"
+    end
+  end
+
+  [part, part_solved]
+end
+
 # The CLI application
 class Aoc < Thor
   desc "bootstrap YEAR DAY", "prepares a sample project for a given day and year:
@@ -95,34 +117,34 @@ downloads the input and instructions, creates a sample source and spec file"
   def run_day(year = nil, day = nil, part = nil)
     year, day = validate_year_and_day(year, day, default_from: :untracked) || return
 
-    if part && !%w[1 2].include?(part)
-      puts "The \"part\" argument must be 1 or 2."
-      return
-    end
+    part, part_solved = validate_part_and_get_solved(year, day, part) || return
 
     solution = Runner.load_solution(year, day)
     input_path = InputFile.download(year, day, notify_exists: false)
     url = "https://adventofcode.com/#{year}/day/#{day}"
     answer_1, answer_2 = nil, nil
 
-    if part == "1" || part.nil?
+    if part == "1" || part_solved.nil? || part_solved == "2"
       answer_1 = Runner.run_part("Part One") { solution.part_1(File.new(input_path)) }
       puts
     end
-    if part == "2" || part.nil?
+    if part == "2" || part_solved
       answer_2 = Runner.run_part("Part Two") { solution.part_2(File.new(input_path)) }
       puts
     end
 
     return unless answer_1 || answer_2
 
+    return if part_solved == "2"
+
     puts url
-    puts "Submit solution to Part #{answer_2 ? "Two" : "One"}? (y/N)"
+    puts "Submit solution? (y/N)"
     submit = STDIN.gets.chomp.downcase
 
     if submit == "y"
+      inferred_part = part_solved.nil? ? "1" : "2"
       aoc_api = AocApi.new(ENV["AOC_COOKIE"])
-      response = aoc_api.submit(year, day, part, answer_2 || answer_1)
+      response = aoc_api.submit(year, day, part || inferred_part, answer_2 || answer_1)
       message = response.match(/(?<=<article>).+(?=<\/article>)/).to_s.strip
       markdown_message = ReverseMarkdown.convert(message)
       # TODO debug when a blank line is output in some success cases
@@ -132,10 +154,12 @@ downloads the input and instructions, creates a sample source and spec file"
       puts
       puts markdown_message
 
-      if part == "1" && markdown_message.start_with?("That's the right answer!")
+      if markdown_message.start_with?("That's the right answer!")
         instructions_path = InstructionsFile.download(year, day, overwrite: true)
+        if (part || inferred_part) == "2"
+          puts "Downloaded instructions for Part Two."
+        end
         `#{CONFIG["editor_command"]} #{instructions_path}`
-        puts "Downloaded instructions for Part Two."
       end
     end
   end

@@ -1,8 +1,12 @@
 class InstructionsFile
-  def self.download(year, day, overwrite: false)
+  def self.path(year, day)
     padded_day = day.rjust(2, "0")
     year_last_two = year[-2..]
-    file_path = File.join("instructions", year, "#{year_last_two}#{padded_day}.md")
+    File.join("instructions", year, "#{year_last_two}#{padded_day}.md")
+  end
+
+  def self.download(year, day, overwrite: false)
+    file_path = path(year, day)
 
     if File.exist?(file_path) && !overwrite
       puts "Already exists: #{file_path}"
