@@ -10,19 +10,19 @@ class OtherSolutionsApi
     "eregon" => ->(year, day, part) {
       if part == "1"
         [
-          "adventofcode/master/#{year}/#{day}.rb",
-          "adventofcode/master/#{year}/#{day}a.rb",
+          "adventofcode/tree/master/#{year}/#{day}.rb",
+          "adventofcode/tree/master/#{year}/#{day}a.rb",
         ]
       elsif part == "2"
-        ["adventofcode/master/#{year}/#{day}b.rb"]
+        ["adventofcode/tree/master/#{year}/#{day}b.rb"]
       end
     },
     "gchan" => ->(year, day, part) {
-      ["advent-of-code-ruby/main/#{year}/day-#{day.rjust(2, "0")}/day-#{day.rjust(2, "0")}-part-#{part}.rb"]
+      ["advent-of-code-ruby/tree/main/#{year}/day-#{day.rjust(2, "0")}/day-#{day.rjust(2, "0")}-part-#{part}.rb"]
     },
     "ahorner" => ->(year, day, part) {
       return [] if part == "1"
-      ["advent-of-code/main/lib/#{year}/#{day.rjust(2, "0")}.rb"]
+      ["advent-of-code/tree/main/lib/#{year}/#{day.rjust(2, "0")}.rb"]
     },
     "ZogStriP" => ->(year, day, part) {
       return [] if part == "1"
@@ -37,10 +37,10 @@ class OtherSolutionsApi
         .downcase
         .gsub(" ", "_")
 
-      ["adventofcode/master/#{year}/#{day.rjust(2, "0")}_#{puzzle_name}.rb"]
+      ["adventofcode/tree/master/#{year}/#{day.rjust(2, "0")}_#{puzzle_name}.rb"]
     },
     "erikw" => ->(year, day, part) {
-      ["advent-of-code-solutions/main/#{year}/#{day.rjust(2, "0")}/part#{part}.rb"]
+      ["advent-of-code-solutions/tree/main/#{year}/#{day.rjust(2, "0")}/part#{part}.rb"]
     },
   }
 
@@ -61,7 +61,7 @@ class OtherSolutionsApi
 
   def initialize
     @headers = {
-      "User-Agent" => "github.com/fpsvogel/ruby-advent-of-code"
+      "User-Agent" => "github.com/fpsvogel/ruby-advent-of-code by fps.vogel@gmail.com"
     }
   end
 
@@ -75,7 +75,7 @@ class OtherSolutionsApi
 
         paths.each do |path|
           next if solution
-          response = self.class.get("/#{username}/#{path}", headers:)
+          response = self.class.get("/#{username}/#{path.sub("/tree/", "/")}", headers:)
           next if response.not_found?
 
           actual_path = path
