@@ -32,7 +32,7 @@ class SpecFile
           expect(subject.part_1(input)).to eq(:todo)
         end
 
-        it "solves Part Two" do
+        xit "solves Part Two" do
           expect(subject.part_2(input)).to eq(:todo)
         end
       end
