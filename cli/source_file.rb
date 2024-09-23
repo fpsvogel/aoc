@@ -19,21 +19,17 @@ class SourceFile
     padded_day = day.rjust(2, "0")
 
     <<~TPL
-      # https://adventofcode.com/#{year}/day/#{day}"
+      # https://adventofcode.com/#{year}/day/#{day}
       module Year#{year}
         class Day#{padded_day}
           def part_1(input_file)
-            lines = input_file
-              .read
-              .split("\n")
+            lines = input_file.readlines(chomp: true)
 
             nil
           end
 
           def part_2(input_file)
-            lines = input_file
-              .read
-              .split("\n")
+            lines = input_file.readlines(chomp: true)
 
             nil
           end
