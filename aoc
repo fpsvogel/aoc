@@ -144,17 +144,17 @@ downloads the input and instructions, creates a sample source and spec file"
     return if part_solved == "2"
 
     puts url
-    puts "Submit solution? (y/N)"
+    puts "Submit solution? (Y/n)"
     submit = STDIN.gets.chomp.downcase
 
-    if submit == "y"
+    unless submit == "n"
       inferred_part = part_solved.nil? ? "1" : "2"
       aoc_api = AocApi.new(ENV["AOC_COOKIE"])
       response = aoc_api.submit(year, day, part || inferred_part, answer_2 || answer_1)
       message = response.match(/(?<=<article>).+(?=<\/article>)/).to_s.strip
       markdown_message = ReverseMarkdown.convert(message)
       # TODO debug when a blank line is output in some success cases
-      debugger if message.blank? || markdown_message.strip.blank?
+      debugger if message.nil? || message.strip.empty? || markdown_message.strip.empty?
 
       puts "Submitting #{url}"
       puts
