@@ -78,9 +78,9 @@ def validate_part_and_get_solved(year, day, part)
   if !part && File.exist?(instructions_file_path)
     instructions = File.read(instructions_file_path)
     if instructions.include?("Both parts of this puzzle are complete!")
-      part_solved = "1"
-    elsif instructions.include?("## --- Part Two ---")
       part_solved = "2"
+    elsif instructions.include?("## --- Part Two ---")
+      part_solved = "1"
     end
   end
 
@@ -131,41 +131,45 @@ downloads the input and instructions, creates a sample source and spec file"
     answer_1, answer_2 = nil, nil
 
     if part == "1" || part_solved.nil? || part_solved == "2"
-      answer_1 = Runner.run_part("Part One") { solution.part_1(File.new(input_path)) }
-      puts
+      answer_1 = Runner.run_part("Part One of #{year}##{day}") do
+        solution.part_1(File.new(input_path))
+      end
     end
     if part == "2" || part_solved
-      answer_2 = Runner.run_part("Part Two") { solution.part_2(File.new(input_path)) }
-      puts
+      answer_2 = Runner.run_part("Part Two of #{year}##{day}") do
+        solution.part_2(File.new(input_path))
+      end
     end
 
     return unless answer_1 || answer_2
 
-    return if part_solved == "2"
+    if part_solved == "2"
+      puts "You've already submitted the answers to both parts ✅"
+      return
+    end
 
-    puts url
     puts "Submit solution? (Y/n)"
     submit = STDIN.gets.chomp.downcase
 
     unless submit == "n"
       inferred_part = part_solved.nil? ? "1" : "2"
       aoc_api = AocApi.new(ENV["AOC_COOKIE"])
+
+      puts "Submitting #{url}\n"
       response = aoc_api.submit(year, day, part || inferred_part, answer_2 || answer_1)
-      message = response.match(/(?<=<article>).+(?=<\/article>)/).to_s.strip
+      message = response.match(/(?<=<article>).+(?=<\/article>)/m).to_s.strip
       markdown_message = ReverseMarkdown.convert(message)
-      # TODO debug when a blank line is output in some success cases
-      debugger if message.nil? || message.strip.empty? || markdown_message.strip.empty?
+      short_message = markdown_message.sub(/\n\n.+/m, "")
 
-      puts "Submitting #{url}"
-      puts
-      puts markdown_message
+      puts short_message
 
-      if markdown_message.start_with?("That's the right answer!")
+      if short_message.start_with?("That's the right answer!")
         instructions_path = InstructionsFile.download(year, day, overwrite: true)
-        if (part || inferred_part) == "2"
+
+        if (part || inferred_part) == "1"
           puts "Downloaded instructions for Part Two."
+          `#{CONFIG["editor_command"]} #{instructions_path}`
         end
-        `#{CONFIG["editor_command"]} #{instructions_path}`
       end
     end
   end

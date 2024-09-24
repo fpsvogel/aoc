@@ -22,6 +22,8 @@ class Runner
       puts "(obtained in #{t} seconds)"
     end
 
+    puts
+
     answer
   end
 end

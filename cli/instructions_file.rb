@@ -24,7 +24,7 @@ class InstructionsFile
         .sub(/\nTo begin, \[get your puzzle input\].+/m, "")
         .sub(/\n\<form method="post".+/m, "")
         .sub(/\nAt this point, you should \[return to your Advent calendar\].+/m, "")
-        .concat("\n#{url}")
+        .concat("\n#{url}\n")
       File.write(file_path, markdown_instructions)
     end
 
