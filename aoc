@@ -95,12 +95,18 @@ downloads the input and instructions, creates a sample source and spec file"
   def bootstrap(year = nil, day = nil)
     year, day = validate_year_and_day(year, day, default_from: :last_committed)
 
-    InputFile.download(year, day)
+    input_path = InputFile.download(year, day)
     instructions_path = InstructionsFile.download(year, day)
     source_path = SourceFile.create(year, day)
     spec_path = SpecFile.create(year, day)
+    others_1_path, others_2_path = OtherSolutionsFiles.download(year, day)
+
     puts "https://adventofcode.com/#{year}/day/#{day}"
 
+    # Open the downloaded and created files.
+    `#{CONFIG["editor_command"]} #{others_2_path}`
+    `#{CONFIG["editor_command"]} #{others_1_path}`
+    `#{CONFIG["editor_command"]} #{input_path}`
     `#{CONFIG["editor_command"]} #{source_path}`
     `#{CONFIG["editor_command"]} #{spec_path}`
     `#{CONFIG["editor_command"]} #{instructions_path}`
@@ -162,39 +168,6 @@ downloads the input and instructions, creates a sample source and spec file"
         `#{CONFIG["editor_command"]} #{instructions_path}`
       end
     end
-  end
-
-  desc "others YEAR DAY PART", "downloads and shows other people's solutions"
-  method_option :others, aliases: "-o"
-  def others(year = nil, day = nil, part = nil)
-    year, day = validate_year_and_day(year, day, default_from: :untracked) || return
-
-    if part && !%w[1 2].include?(part)
-      puts "The \"part\" argument must be 1 or 2."
-      return
-    end
-
-    padded_day = day.rjust(2, "0")
-    year_last_two = year[-2..]
-
-    unless part
-      file_1 = File.join("others", year, "#{year_last_two}#{padded_day}1.rb")
-      part = File.exist?(file_1) ? "2" : "1"
-    end
-
-    file_path = File.join("others", year, "#{year_last_two}#{padded_day}#{part}.rb")
-
-    if File.exist?(file_path)
-      puts "Already exists: #{file_path}"
-    else
-      year_directory = File.join("others", year)
-      FileUtils.mkdir_p(year_directory) if !Dir.exist?(year_directory)
-
-      other_solutions = OtherSolutionsApi.new.other_solutions(year, day, part)
-      File.write(file_path, other_solutions)
-    end
-
-    `#{CONFIG["editor_command"]} #{file_path}`
   end
 end
 
