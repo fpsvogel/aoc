@@ -14,10 +14,17 @@ class InstructionsFile
       year_directory = File.join("instructions", year)
       FileUtils.mkdir_p(year_directory) if !Dir.exist?(year_directory)
 
+      url = "https://adventofcode.com/#{year}/day/#{day}"
+
       aoc_api = AocApi.new(ENV["AOC_COOKIE"])
       response = aoc_api.instructions(year, day)
       instructions = response.match(/(?<=<main>).+(?=<\/main>)/m).to_s
       markdown_instructions = ReverseMarkdown.convert(instructions).strip
+      markdown_instructions = markdown_instructions
+        .sub(/\nTo begin, \[get your puzzle input\].+/m, "")
+        .sub(/\n\<form method="post".+/m, "")
+        .sub(/\nAt this point, you should \[return to your Advent calendar\].+/m, "")
+        .concat("\n#{url}")
       File.write(file_path, markdown_instructions)
     end
 
