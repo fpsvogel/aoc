@@ -28,7 +28,7 @@ def validate_year_and_day(year, day, default_from:)
   elsif !year && !day
     case default_from
     when :untracked
-      untracked_solutions = `git status -s | grep "^?? solutions/"`
+      untracked_solutions = `git status -su | grep "^?? solutions/"`
 
       if untracked_solutions.empty?
         puts "Could not find an untracked solution file. Please run the command again with the year and day."
