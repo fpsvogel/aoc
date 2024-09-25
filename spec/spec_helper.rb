@@ -1,3 +1,5 @@
+require "debug"
+
 solution_files = File.join(File.dirname(__FILE__), "..", "solutions", "**", "*.rb")
 Dir[solution_files].each { |f| require f }
 
