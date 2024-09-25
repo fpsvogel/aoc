@@ -4,11 +4,14 @@ require "fileutils"
 require "httparty"
 require "dotenv/load"
 require "thor"
+require "pastel"
 require "benchmark"
 require "reverse_markdown"
 require "yaml"
 require "date"
 require "debug"
+
+class InputError < StandardError; end
 
 cli_files = File.join(File.dirname(__FILE__), "cli", "*.rb")
 solution_files = File.join(File.dirname(__FILE__), "solutions", "**", "*.rb")
@@ -17,22 +20,20 @@ Dir[solution_files].each { |file| require file }
 
 CONFIG = YAML.load(File.read("config.yml"))
 
-# TODO in the two validate methods, raise errors to be rescued, instead of returning nil
 def validate_year_and_day(year, day, default_from:)
   if year && day
     # The first two digits of the year may be omitted.
     year = "20#{year}" if year.length == 2
   elsif (year && !day) || (day && !year)
-    puts "Please specify both year and day, or neither."
-    return nil
+    raise InputError, "Specify both year and day, or neither."
   elsif !year && !day
     case default_from
     when :untracked
       untracked_solutions = `git status -su | grep "^?? solutions/"`
 
       if untracked_solutions.empty?
-        puts "Could not find an untracked solution file. Please run the command again with the year and day."
-        return nil
+        raise InputError, "Could not find an untracked solution file. " \
+          "Either run the command again with the year and day, or bootstrap the next puzzle."
       end
 
       match = untracked_solutions.match(/(?<year>\d{4})\/(?<day>\d\d).rb$/)
@@ -41,27 +42,25 @@ def validate_year_and_day(year, day, default_from:)
       last_committed_solution = `git log -n 1 --name-only --pretty=format: solutions`.lines.last
 
       unless last_committed_solution
-        puts "Could not find a committed solution file. Please `aoc bootstrap` again with the year and day."
-        return nil
+        raise InputError, "Could not find a committed solution file. " \
+          "Run `aoc bootstrap` again with the year and day."
       end
 
       match = last_committed_solution.match(/(?<year>\d{4})\/(?<day>\d\d).rb$/)
       year, day = match[:year], match[:day].next
     else
-      raise "Invalid `default_from` param."
+      raise ArgumentError, "Invalid `default_from` param."
     end
   end
 
-  year = Integer(year, exception: false) || (puts "Year must be a number." && (return nil))
-  day = Integer(day, exception: false) || (puts "Day must be a number." && (return nil))
+  year = Integer(year, exception: false) || (raise InputError, "Year must be a number.")
+  day = Integer(day, exception: false) || (raise InputError, "Day must be a number.")
 
   unless year.between?(2015, Date.today.year)
-    puts "Year must be between 2015 and this year."
-    return nil
+    raise InputError, "Year must be between 2015 and this year."
   end
   unless day.between?(1, 25) && Date.new(year, 12, day) <= Date.today
-    puts "Day must be between 1 and 25, and <= today."
-    return nil
+    raise InputError, "Day must be between 1 and 25, and <= today."
   end
 
   [year.to_s, day.to_s]
@@ -69,8 +68,7 @@ end
 
 def validate_part_and_get_solved(year, day, part)
   if part && !%w[1 2].include?(part)
-    puts "The \"part\" argument must be 1 or 2."
-    return nil
+    raise InputError, "The \"part\" argument must be 1 or 2."
   end
 
   part_solved = nil
@@ -110,6 +108,8 @@ downloads the input and instructions, creates a sample source and spec file"
     `#{CONFIG["editor_command"]} #{source_path}`
     `#{CONFIG["editor_command"]} #{spec_path}`
     `#{CONFIG["editor_command"]} #{instructions_path}`
+  rescue InputError => e
+    puts Pastel.new.red(e.message)
   end
 
   # TODO add a [VARIANT] arg, so that additional versions of the same solution
@@ -175,6 +175,8 @@ downloads the input and instructions, creates a sample source and spec file"
         puts "❌ #{short_message}"
       end
     end
+  rescue InputError => e
+    puts Pastel.new.red(e.message)
   end
 end
 
