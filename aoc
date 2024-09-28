@@ -21,30 +21,28 @@ Dir[solution_files].each { |file| require file }
 CONFIG = YAML.load(File.read("config.yml"))
 PASTEL = Pastel.new
 
-def validate_year_and_day(year, day, default_from:)
+def validate_year_and_day(year, day, default_untracked_or_done: false)
   # The first two digits of the year may be omitted.
   year = "20#{year}" if year && year.length == 2
 
   if day && !year
     raise InputError, "If you specify the day, specify the year also."
   elsif !day
-    case default_from
-    when :untracked
+    if default_untracked_or_done
       untracked_solutions = `git status -su | grep "^?? #{File.join("solutions", year || "")}"`
 
-      if untracked_solutions.empty?
-        raise InputError, "Could not find an untracked solution file. " \
-          "Either run the command again with the year and day, or bootstrap the next puzzle."
+      unless untracked_solutions.empty?
+        match = untracked_solutions.match(/(?<year>\d{4})\/(?<day>\d\d).rb$/)
+        year, day = match[:year], match[:day]
       end
+    end
 
-      match = untracked_solutions.match(/(?<year>\d{4})\/(?<day>\d\d).rb$/)
-      year, day = match[:year], match[:day]
-    when :last_committed
+    if !default_untracked_or_done || untracked_solutions.empty?
       if year && !Dir.exist?(File.join("solutions", year))
         FileUtils.mkdir_p(File.join("solutions", year))
         day = "1"
       else
-        last_committed_solution = `git log -n 1 --name-only --pretty=format: #{File.join("solutions", year)}`.lines.last
+        last_committed_solution = `git log -n 1 --name-only --pretty=format: #{File.join("solutions", year || "")}`.lines.last
 
         unless last_committed_solution
           raise InputError, "Could not find a committed solution file. " \
@@ -52,10 +50,10 @@ def validate_year_and_day(year, day, default_from:)
         end
 
         match = last_committed_solution.match(/(?<year>\d{4})\/(?<day>\d\d).rb$/)
-        year, day = match[:year], match[:day].next
+
+        year, day = match[:year], match[:day]
+        day = day.next unless default_untracked_or_done
       end
-    else
-      raise ArgumentError, "Invalid `default_from` param."
     end
   end
 
@@ -78,7 +76,7 @@ class Aoc < Thor
     "creates files: input, instructions, other solutions, source, and specs"
   method_option :bootstrap, aliases: "-b"
   def bootstrap(year = nil, day = nil)
-    year, day = validate_year_and_day(year, day, default_from: :last_committed)
+    year, day = validate_year_and_day(year, day)
 
     input_path = InputFile.download(year, day)
     instructions_path = InstructionsFile.download(year, day)
@@ -89,8 +87,8 @@ class Aoc < Thor
     puts "🤘 Bootstrapped #{year}##{day}"
 
     # Open the new files.
-    `#{CONFIG["editor_command"]} #{others_2_path}`
     `#{CONFIG["editor_command"]} #{others_1_path}`
+    `#{CONFIG["editor_command"]} #{others_2_path}`
     `#{CONFIG["editor_command"]} #{input_path}`
     `#{CONFIG["editor_command"]} #{source_path}`
     `#{CONFIG["editor_command"]} #{spec_path}`
@@ -108,7 +106,7 @@ class Aoc < Thor
   desc "run YEAR DAY [PART]", "executes a given day, year, and optionally part"
   method_option :run_day, aliases: "-r"
   def run_day(year = nil, day = nil, part = nil)
-    year, day = validate_year_and_day(year, day, default_from: :untracked) || return
+    year, day = validate_year_and_day(year, day, default_untracked_or_done: true) || return
 
     if part && !%w[1 2].include?(part)
       raise InputError, "The \"part\" argument must be 1 or 2."
@@ -124,12 +122,12 @@ class Aoc < Thor
     correct_answer_1, correct_answer_2 = instructions.scan(/Your puzzle answer was `([^`]+)`./).flatten
 
     if part == "1" || correct_answer_1.nil? || (correct_answer_2 && part != "2")
-      answer_1 = Runner.run_part("Part One of #{year}##{day}", correct_answer_1) do
+      answer_1 = Runner.run_part("#{year}##{day}.1", correct_answer_1) do
         solution.part_1(File.new(input_path))
       end
     end
     if part == "2" || (correct_answer_1 && !correct_answer_2) || (correct_answer_2 && part != "1")
-      answer_2 = Runner.run_part("Part Two of #{year}##{day}", correct_answer_2) do
+      answer_2 = Runner.run_part("#{year}##{day}.2", correct_answer_2) do
         solution.part_2(File.new(input_path))
       end
     end
