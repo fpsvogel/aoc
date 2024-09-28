@@ -5,11 +5,11 @@ class InstructionsFile
     File.join("instructions", year, "#{year_last_two}#{padded_day}.md")
   end
 
-  def self.download(year, day, overwrite: false)
+  def self.download(year, day, notify_exists: true, overwrite: false)
     file_path = path(year, day)
 
     if File.exist?(file_path) && !overwrite
-      puts "Already exists: #{file_path}"
+      puts "Already exists: #{file_path}" if notify_exists
     else
       year_directory = File.join("instructions", year)
       FileUtils.mkdir_p(year_directory) if !Dir.exist?(year_directory)

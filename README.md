@@ -2,7 +2,7 @@
 
 These are my Advent of Code solutions in Ruby.
 
-The included CLI utility is based on [AoC-rb](https://github.com/Keirua/aoc-cli), with some additions. These are the commands:
+The included CLI utility is based on [AoC-rb](https://github.com/Keirua/aoc-cli), with modifications. There are two commands:
 
 - `aoc bootstrap YEAR DAY`
   - Downloads the input and instructions files for the given day.

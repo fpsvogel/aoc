@@ -130,13 +130,17 @@ downloads the input and instructions, creates a sample source and spec file"
     url = "https://adventofcode.com/#{year}/day/#{day}"
     answer_1, answer_2 = nil, nil
 
+    instructions_path = InstructionsFile.download(year, day, notify_exists: false, overwrite: false)
+    instructions = File.read(instructions_path)
+    correct_answer_1, correct_answer_2 = instructions.scan(/Your puzzle answer was `([^`]+)`./).flatten
+
     if part == "1" || part_solved.nil? || part_solved == "2"
-      answer_1 = Runner.run_part("Part One of #{year}##{day}") do
+      answer_1 = Runner.run_part("Part One of #{year}##{day}", correct_answer_1) do
         solution.part_1(File.new(input_path))
       end
     end
     if part == "2" || part_solved
-      answer_2 = Runner.run_part("Part Two of #{year}##{day}") do
+      answer_2 = Runner.run_part("Part Two of #{year}##{day}", correct_answer_2) do
         solution.part_2(File.new(input_path))
       end
     end
@@ -144,7 +148,7 @@ downloads the input and instructions, creates a sample source and spec file"
     return unless answer_1 || answer_2
 
     if part_solved == "2"
-      puts "✅ You've already submitted the answers to both parts."
+      puts "🙌 You've already submitted the answers to both parts."
       return
     end
 
