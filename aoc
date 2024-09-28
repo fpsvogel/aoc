@@ -22,15 +22,15 @@ CONFIG = YAML.load(File.read("config.yml"))
 PASTEL = Pastel.new
 
 def validate_year_and_day(year, day, default_from:)
-  if year && day
-    # The first two digits of the year may be omitted.
-    year = "20#{year}" if year.length == 2
-  elsif (year && !day) || (day && !year)
-    raise InputError, "Specify both year and day, or neither."
-  elsif !year && !day
+  # The first two digits of the year may be omitted.
+  year = "20#{year}" if year && year.length == 2
+
+  if day && !year
+    raise InputError, "If you specify the day, specify the year also."
+  elsif !day
     case default_from
     when :untracked
-      untracked_solutions = `git status -su | grep "^?? solutions/"`
+      untracked_solutions = `git status -su | grep "^?? #{File.join("solutions", year || "")}"`
 
       if untracked_solutions.empty?
         raise InputError, "Could not find an untracked solution file. " \
@@ -40,15 +40,20 @@ def validate_year_and_day(year, day, default_from:)
       match = untracked_solutions.match(/(?<year>\d{4})\/(?<day>\d\d).rb$/)
       year, day = match[:year], match[:day]
     when :last_committed
-      last_committed_solution = `git log -n 1 --name-only --pretty=format: solutions`.lines.last
+      if year && !Dir.exist?(File.join("solutions", year))
+        FileUtils.mkdir_p(File.join("solutions", year))
+        day = "1"
+      else
+        last_committed_solution = `git log -n 1 --name-only --pretty=format: #{File.join("solutions", year)}`.lines.last
 
-      unless last_committed_solution
-        raise InputError, "Could not find a committed solution file. " \
-          "Run `aoc bootstrap` again with the year and day."
+        unless last_committed_solution
+          raise InputError, "Could not find a committed solution file. " \
+            "Run `aoc bootstrap` again with the year and day."
+        end
+
+        match = last_committed_solution.match(/(?<year>\d{4})\/(?<day>\d\d).rb$/)
+        year, day = match[:year], match[:day].next
       end
-
-      match = last_committed_solution.match(/(?<year>\d{4})\/(?<day>\d\d).rb$/)
-      year, day = match[:year], match[:day].next
     else
       raise ArgumentError, "Invalid `default_from` param."
     end
@@ -69,8 +74,8 @@ end
 
 # The CLI application
 class Aoc < Thor
-  desc "bootstrap YEAR DAY", "prepares a sample project for a given day and year:
-downloads the input and instructions, creates a sample source and spec file"
+  desc "bootstrap YEAR [DAY]", "for a given year and day (defaults to Day 1), " \
+    "creates files: input, instructions, other solutions, source, and specs"
   method_option :bootstrap, aliases: "-b"
   def bootstrap(year = nil, day = nil)
     year, day = validate_year_and_day(year, day, default_from: :last_committed)
@@ -83,7 +88,7 @@ downloads the input and instructions, creates a sample source and spec file"
 
     puts "🤘 Bootstrapped #{year}##{day}"
 
-    # Open the downloaded and created files.
+    # Open the new files.
     `#{CONFIG["editor_command"]} #{others_2_path}`
     `#{CONFIG["editor_command"]} #{others_1_path}`
     `#{CONFIG["editor_command"]} #{input_path}`
