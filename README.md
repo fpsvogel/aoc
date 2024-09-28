@@ -21,6 +21,7 @@ The included CLI utility is based on [AoC-rb](https://github.com/Keirua/aoc-cli)
   - Runs part `1` or `2` of the given day. If the `PART` argument is omitted, it is inferred from the part(s) already solved.
   - Optionally submits the answer, via a prompt that appears if it has not already been submitted.
   - *If no arguments are given, it runs the puzzle that is untracked in Git, if any.*
+- `aoc status` shows progress, total and by year, based on the number of your solutions committed in Git.
 
 ## Installation
 
