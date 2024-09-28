@@ -12,14 +12,15 @@ class Runner
       answer = yield
       if !answer.nil?
         puts "Result for #{part_name}:"
-        puts answer
 
         if correct_answer
           if answer.to_s == correct_answer
-            puts "✅ Correct!"
+            puts PASTEL.green.bold("✅ #{answer}")
           else
-            puts "❌ Incorrect. Should be #{correct_answer}."
+            puts PASTEL.red.bold("❌ #{answer} -- should be #{correct_answer}")
           end
+        else
+          puts PASTEL.bright_white.bold(answer)
         end
       else
         puts "No result for #{part_name}"

@@ -19,6 +19,7 @@ Dir[cli_files].each { |file| require file }
 Dir[solution_files].each { |file| require file }
 
 CONFIG = YAML.load(File.read("config.yml"))
+PASTEL = Pastel.new
 
 def validate_year_and_day(year, day, default_from:)
   if year && day
@@ -66,25 +67,6 @@ def validate_year_and_day(year, day, default_from:)
   [year.to_s, day.to_s]
 end
 
-def validate_part_and_get_solved(year, day, part)
-  if part && !%w[1 2].include?(part)
-    raise InputError, "The \"part\" argument must be 1 or 2."
-  end
-
-  part_solved = nil
-  instructions_file_path = InstructionsFile.path(year, day)
-  if !part && File.exist?(instructions_file_path)
-    instructions = File.read(instructions_file_path)
-    if instructions.include?("Both parts of this puzzle are complete!")
-      part_solved = "2"
-    elsif instructions.include?("## --- Part Two ---")
-      part_solved = "1"
-    end
-  end
-
-  [part, part_solved]
-end
-
 # The CLI application
 class Aoc < Thor
   desc "bootstrap YEAR DAY", "prepares a sample project for a given day and year:
@@ -123,7 +105,9 @@ downloads the input and instructions, creates a sample source and spec file"
   def run_day(year = nil, day = nil, part = nil)
     year, day = validate_year_and_day(year, day, default_from: :untracked) || return
 
-    part, part_solved = validate_part_and_get_solved(year, day, part) || return
+    if part && !%w[1 2].include?(part)
+      raise InputError, "The \"part\" argument must be 1 or 2."
+    end
 
     solution = Runner.load_solution(year, day)
     input_path = InputFile.download(year, day, notify_exists: false)
@@ -134,12 +118,12 @@ downloads the input and instructions, creates a sample source and spec file"
     instructions = File.read(instructions_path)
     correct_answer_1, correct_answer_2 = instructions.scan(/Your puzzle answer was `([^`]+)`./).flatten
 
-    if part == "1" || part_solved.nil? || part_solved == "2"
+    if part == "1" || correct_answer_1.nil? || (correct_answer_2 && part != "2")
       answer_1 = Runner.run_part("Part One of #{year}##{day}", correct_answer_1) do
         solution.part_1(File.new(input_path))
       end
     end
-    if part == "2" || part_solved
+    if part == "2" || (correct_answer_1 && !correct_answer_2) || (correct_answer_2 && part != "1")
       answer_2 = Runner.run_part("Part Two of #{year}##{day}", correct_answer_2) do
         solution.part_2(File.new(input_path))
       end
@@ -147,16 +131,19 @@ downloads the input and instructions, creates a sample source and spec file"
 
     return unless answer_1 || answer_2
 
-    if part_solved == "2"
+    if part != "1" && correct_answer_2
       puts "🙌 You've already submitted the answers to both parts."
+      return
+    elsif part == "1" && correct_answer_1
+      puts "🙌 You've already submitted the answer to this part."
       return
     end
 
     puts "Submit solution? (Y/n)"
     submit = STDIN.gets.chomp.downcase
 
-    unless submit == "n"
-      inferred_part = part_solved.nil? ? "1" : "2"
+    if submit == "y" || submit == ""
+      inferred_part = correct_answer_1.nil? ? "1" : "2"
       aoc_api = AocApi.new(ENV["AOC_COOKIE"])
 
       response = aoc_api.submit(year, day, part || inferred_part, answer_2 || answer_1)
@@ -180,7 +167,7 @@ downloads the input and instructions, creates a sample source and spec file"
       end
     end
   rescue InputError => e
-    puts Pastel.new.red(e.message)
+    puts PASTEL.red(e.message)
   end
 end
 
