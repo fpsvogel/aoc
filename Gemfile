@@ -9,3 +9,6 @@ gem "pastel"
 gem "reverse_markdown"
 gem "rspec"
 gem "thor"
+
+# for my solutions
+gem "matrix"
