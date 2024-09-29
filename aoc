@@ -9,6 +9,7 @@ require "benchmark"
 require "reverse_markdown"
 require "yaml"
 require "date"
+require "rspec/core"
 require "debug"
 
 class InputError < StandardError; end
@@ -20,55 +21,6 @@ Dir[solution_files].each { |file| require file }
 
 CONFIG = YAML.load(File.read("config.yml"))
 PASTEL = Pastel.new
-
-def validate_year_and_day(year, day, default_untracked_or_done: false)
-  # The first two digits of the year may be omitted.
-  year = "20#{year}" if year && year.length == 2
-
-  if day && !year
-    raise InputError, "If you specify the day, specify the year also."
-  elsif !day
-    if default_untracked_or_done
-      untracked_solutions = `git status -su | grep "^?? #{File.join("solutions", year || "")}"`
-
-      unless untracked_solutions.empty?
-        match = untracked_solutions.match(/(?<year>\d{4})\/(?<day>\d\d).rb$/)
-        year, day = match[:year], match[:day]
-      end
-    end
-
-    if !default_untracked_or_done || untracked_solutions.empty?
-      if year && !Dir.exist?(File.join("solutions", year))
-        FileUtils.mkdir_p(File.join("solutions", year))
-        day = "1"
-      else
-        last_committed_solution = `git log -n 1 --name-only --pretty=format: #{File.join("solutions", year || "")}`.lines.last
-
-        unless last_committed_solution
-          raise InputError, "Could not find a committed solution file. " \
-            "Run `aoc bootstrap` again with the year and day."
-        end
-
-        match = last_committed_solution.match(/(?<year>\d{4})\/(?<day>\d\d).rb$/)
-
-        year, day = match[:year], match[:day]
-        day = day.next unless default_untracked_or_done
-      end
-    end
-  end
-
-  year = Integer(year, exception: false) || (raise InputError, "Year must be a number.")
-  day = Integer(day, exception: false) || (raise InputError, "Day must be a number.")
-
-  unless year.between?(2015, Date.today.year)
-    raise InputError, "Year must be between 2015 and this year."
-  end
-  unless day.between?(1, 25) && Date.new(year, 12, day) <= Date.today
-    raise InputError, "Day must be between 1 and 25, and <= today."
-  end
-
-  [year.to_s, day.to_s]
-end
 
 # The CLI application
 class Aoc < Thor
@@ -120,6 +72,9 @@ class Aoc < Thor
     instructions_path = InstructionsFile.download(year, day, notify_exists: false, overwrite: false)
     instructions = File.read(instructions_path)
     correct_answer_1, correct_answer_2 = instructions.scan(/Your puzzle answer was `([^`]+)`./).flatten
+
+    specs_passed = run_specs(year, day)
+    return unless specs_passed
 
     if part == "1" || correct_answer_1.nil? || (correct_answer_2 && part != "2")
       answer_1 = Runner.run_part("#{year}##{day}.1", correct_answer_1) do
@@ -183,7 +138,7 @@ class Aoc < Thor
 
     my_counts_by_year = `git ls-files solutions/`
       .split("\n")
-      .select { |path| File.basename(path) =~ /\d\d\.rb/ }
+      .select { |path| File.basename(path).match?(/\d\d\.rb/) }
       .group_by { |path| File.basename(File.dirname(path)) }
       .transform_values(&:count)
     my_total_count = my_counts_by_year.values.sum
@@ -205,6 +160,73 @@ class Aoc < Thor
 
       puts "#{PASTEL.blue(year + ":")}\t#{year_percent}%\t#{my_count}/#{year_count}"
     end
+  end
+
+  private
+
+  def run_specs(year, day)
+    padded_day = day.rjust(2, "0")
+    out = StringIO.new
+    spec_filename =	[File.join("spec", year, "#{padded_day}_spec.rb")]
+    RSpec::Core::Runner.run(spec_filename, $stderr, out)
+
+    if out.string.match?(/Failures:/)
+      RSpec.reset
+      RSpec::Core::Runner.run(spec_filename)
+
+      false
+    else
+      true
+    end
+  end
+
+  def validate_year_and_day(year, day, default_untracked_or_done: false)
+    # The first two digits of the year may be omitted.
+    year = "20#{year}" if year && year.length == 2
+
+    if day && !year
+      raise InputError, "If you specify the day, specify the year also."
+    elsif !day
+      if default_untracked_or_done
+        untracked_solutions = `git status -su | grep "^?? #{File.join("solutions", year || "")}"`
+
+        unless untracked_solutions.empty?
+          match = untracked_solutions.match(/(?<year>\d{4})\/(?<day>\d\d).rb$/)
+          year, day = match[:year], match[:day]
+        end
+      end
+
+      if !default_untracked_or_done || untracked_solutions.empty?
+        if year && !Dir.exist?(File.join("solutions", year))
+          FileUtils.mkdir_p(File.join("solutions", year))
+          day = "1"
+        else
+          last_committed_solution = `git log -n 1 --name-only --pretty=format: #{File.join("solutions", year || "")}`.lines.last
+
+          unless last_committed_solution
+            raise InputError, "Could not find a committed solution file. " \
+              "Run `aoc bootstrap` again with the year and day."
+          end
+
+          match = last_committed_solution.match(/(?<year>\d{4})\/(?<day>\d\d).rb$/)
+
+          year, day = match[:year], match[:day]
+          day = day.next unless default_untracked_or_done
+        end
+      end
+    end
+
+    year = Integer(year, exception: false) || (raise InputError, "Year must be a number.")
+    day = Integer(day, exception: false) || (raise InputError, "Day must be a number.")
+
+    unless year.between?(2015, Date.today.year)
+      raise InputError, "Year must be between 2015 and this year."
+    end
+    unless day.between?(1, 25) && Date.new(year, 12, day) <= Date.today
+      raise InputError, "Day must be between 1 and 25, and <= today."
+    end
+
+    [year.to_s, day.to_s]
   end
 end
 
