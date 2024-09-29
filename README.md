@@ -20,6 +20,7 @@ The included CLI utility is based on [AoC-rb](https://github.com/Keirua/aoc-cli)
 - `aoc run YEAR DAY [PART]`
   - Runs specs for part `1` or `2` of the given day.
   - Unless specs fail, runs part `1` or `2` of the given day.
+  - To explicitly run just the specs or just the real input, add the `--spec` (`-s`) or `--real` (`-r`) flag.
   - Optionally submits the answer, via a prompt that appears if it has not already been submitted.
   - *If the part argument is omitted, it is inferred from the part(s) already solved.*
   - *If all arguments are omitted, it runs the puzzle that is untracked in Git, if any.*

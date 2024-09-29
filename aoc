@@ -56,8 +56,13 @@ class Aoc < Thor
   #   #part_1_concise   # for a code-golf type solution
   #   #part_1_alt       # for an alternative approach
   desc "run YEAR DAY [PART]", "executes a given day, year, and optionally part"
-  method_option :run_day, aliases: "-r"
+  method_option :spec, type: :boolean, aliases: "-s"
+  method_option :real, type: :boolean, aliases: "-r"
   def run_day(year = nil, day = nil, part = nil)
+    if options.spec? && options.real?
+      raise InputError, "Specify --spec (-s) or --real (-r) but not both."
+    end
+
     year, day = validate_year_and_day(year, day, default_untracked_or_done: true) || return
 
     if part && !%w[1 2].include?(part)
@@ -73,8 +78,13 @@ class Aoc < Thor
     instructions = File.read(instructions_path)
     correct_answer_1, correct_answer_2 = instructions.scan(/Your puzzle answer was `([^`]+)`./).flatten
 
-    specs_passed = run_specs(year, day)
-    return unless specs_passed
+    if options.spec?
+      run_specs_only(year, day)
+      return
+    elsif !options.real?
+      specs_passed = run_specs_before_real(year, day)
+      return unless specs_passed
+    end
 
     if part == "1" || correct_answer_1.nil? || (correct_answer_2 && part != "2")
       answer_1 = Runner.run_part("#{year}##{day}.1", correct_answer_1) do
@@ -130,7 +140,6 @@ class Aoc < Thor
 
   desc "status", "shows progress, total and by year, based on the number of " \
     "your solutions committed in Git"
-  method_option :status, aliases: "-s"
   def status
     past_year_count = 25 * (Date.today.year - 1 - 2015)
     this_year_count = (Date.today.month == 12 ? Date.today.day : 0).clamp(..25)
@@ -164,10 +173,18 @@ class Aoc < Thor
 
   private
 
-  def run_specs(year, day)
+  def run_specs_only(year, day)
     padded_day = day.rjust(2, "0")
-    out = StringIO.new
     spec_filename =	[File.join("spec", year, "#{padded_day}_spec.rb")]
+
+    RSpec::Core::Runner.run(spec_filename)
+  end
+
+  def run_specs_before_real(year, day)
+    padded_day = day.rjust(2, "0")
+    spec_filename =	[File.join("spec", year, "#{padded_day}_spec.rb")]
+
+    out = StringIO.new
     RSpec::Core::Runner.run(spec_filename, $stderr, out)
 
     if out.string.match?(/Failures:/)
