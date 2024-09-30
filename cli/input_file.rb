@@ -1,4 +1,6 @@
 class InputFile
+  LOGGED_OUT_RESPONSE = "Puzzle inputs differ by user.  Please log in to get your puzzle input.\n"
+
   def self.download(year, day, notify_exists: true)
     padded_day = day.rjust(2, "0")
     file_path = File.join("input", year, "#{padded_day}.txt")
@@ -11,6 +13,12 @@ class InputFile
 
       aoc_api = AocApi.new(ENV["AOC_COOKIE"])
       response = aoc_api.input(year, day)
+
+      if response.to_s == LOGGED_OUT_RESPONSE
+        raise AuthError, "You're logged out! Go to https://adventofcode.com then " \
+          "log in, copy your session cookie, and paste into `AOC_COOKIE` in .env"
+      end
+
       File.write(file_path, response)
     end
 

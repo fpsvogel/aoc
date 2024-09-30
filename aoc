@@ -12,7 +12,9 @@ require "date"
 require "rspec/core"
 require "debug"
 
-class InputError < StandardError; end
+class AppError < StandardError; end
+class InputError < AppError; end
+class AuthError < AppError; end
 
 cli_files = File.join(File.dirname(__FILE__), "cli", "*.rb")
 solution_files = File.join(File.dirname(__FILE__), "solutions", "**", "*.rb")
@@ -45,7 +47,7 @@ class Aoc < Thor
     `#{CONFIG["editor_command"]} #{source_path}`
     `#{CONFIG["editor_command"]} #{spec_path}`
     `#{CONFIG["editor_command"]} #{instructions_path}`
-  rescue InputError => e
+  rescue AppError => e
     puts Pastel.new.red(e.message)
   end
 
@@ -134,7 +136,7 @@ class Aoc < Thor
         puts "❌ #{short_message}"
       end
     end
-  rescue InputError => e
+  rescue AppError => e
     puts PASTEL.red(e.message)
   end
 

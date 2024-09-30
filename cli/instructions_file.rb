@@ -21,10 +21,12 @@ class InstructionsFile
       instructions = response.match(/(?<=<main>).+(?=<\/main>)/m).to_s
       markdown_instructions = ReverseMarkdown.convert(instructions).strip
       markdown_instructions = markdown_instructions
+        .sub(/\nTo play, please identify yourself via one of these services:.+/m, "")
         .sub(/\nTo begin, \[get your puzzle input\].+/m, "")
         .sub(/\n\<form method="post".+/m, "")
         .sub(/\nAt this point, you should \[return to your Advent calendar\].+/m, "")
         .concat("\n#{url}\n")
+
       File.write(file_path, markdown_instructions)
     end
 
