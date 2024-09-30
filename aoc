@@ -223,7 +223,7 @@ class Aoc < Thor
           FileUtils.mkdir_p(File.join("solutions", year))
           day = "1"
         else
-          last_committed_solution = `git log -n 1 --name-only --pretty=format: #{File.join("solutions", year || "")}`.lines.last
+          last_committed_solution = `git log -n 1 --diff-filter=A --name-only --pretty=format: #{File.join("solutions", year || "")}`.lines.last
 
           unless last_committed_solution
             raise InputError, "Could not find a committed solution file. " \
