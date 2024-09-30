@@ -4,7 +4,7 @@ These are my Advent of Code solutions in Ruby.
 
 The included CLI utility is based on [AoC-rb](https://github.com/Keirua/aoc-cli), with modifications. Here are all the commands:
 
-- `aoc bootstrap YEAR [DAY]`
+- `aoc bootstrap YEAR DAY`
   - Downloads the input and instructions files for the given day.
   - Creates a source file and a spec file for the given day.
   - Downloads other people's solutions, from these repos:
@@ -17,10 +17,13 @@ The included CLI utility is based on [AoC-rb](https://github.com/Keirua/aoc-cli)
   - *If both arguments are omitted, it bootstraps the puzzle that comes after the one that was last committed to Git.*
   - Opens all of the new files using `editor_command` in `config.yml`.
   - Note: For easy file-searchability (Ctrl+P in VS Code), the instructions file is named (for day 1 of 2015, for example) `1501.md` and the other solutions are named `15011.rb` and `15012.rb` (part 1 and part 2).
-- `aoc run YEAR DAY [PART]`
-  - Runs specs for part `1` or `2` of the given day.
-  - Unless specs fail, runs part `1` or `2` of the given day.
-  - To explicitly run just the specs or just the real input, add the `--spec` (`-s`) or `--real` (`-r`) flag.
+- `aoc run YEAR DAY`
+  - Runs specs for the given day.
+  - Unless specs fail, runs the currently in-progress part (Part One or Part Two) of the given day.
+  - If you're seeing specs run when you want to run only the real input, or vice versa, add one of the following flags:
+    - `--spec` (`-s`) runs only the specs. (To run only Part One or Part Two specs, in the spec file change `it` to `xit` on the other one to skip it.)
+    - `--real_part_1` (`-o`) runs only Part One with the real input.
+    - `--real_part_2` (`-t`) runs only Part Two with the real input.
   - Optionally submits the answer, via a prompt that appears if it has not already been submitted.
   - *If the part argument is omitted, it is inferred from the part(s) already solved.*
   - *If all arguments are omitted, it runs the puzzle that is untracked in Git, if any.*

@@ -57,19 +57,16 @@ class Aoc < Thor
   #   #part_1_first     # for my initial attempt
   #   #part_1_concise   # for a code-golf type solution
   #   #part_1_alt       # for an alternative approach
-  desc "run YEAR DAY [PART]", "executes a given day, year, and optionally part"
+  desc "run YEAR DAY", "executes a given day and year"
   method_option :spec, type: :boolean, aliases: "-s"
-  method_option :real, type: :boolean, aliases: "-r"
-  def run_day(year = nil, day = nil, part = nil)
-    if options.spec? && options.real?
-      raise InputError, "Specify --spec (-s) or --real (-r) but not both."
+  method_option :real_part_1, type: :boolean, aliases: "-o"
+  method_option :real_part_2, type: :boolean, aliases: "-t"
+  def run_day(year = nil, day = nil)
+    if options.spec? && (options.real_part_1? || options.real_part_2?)
+      raise InputError, "Don't use --spec (-s) with --real_part_1 (-o) or --real_part_2 (-t)"
     end
 
     year, day = validate_year_and_day(year, day, default_untracked_or_done: true) || return
-
-    if part && !%w[1 2].include?(part)
-      raise InputError, "The \"part\" argument must be 1 or 2."
-    end
 
     solution = Runner.load_solution(year, day)
     input_path = InputFile.download(year, day, notify_exists: false)
@@ -83,17 +80,17 @@ class Aoc < Thor
     if options.spec?
       run_specs_only(year, day)
       return
-    elsif !options.real?
+    elsif !(options.real_part_1? || options.real_part_2?)
       specs_passed = run_specs_before_real(year, day)
       return unless specs_passed
     end
 
-    if part == "1" || correct_answer_1.nil? || (correct_answer_2 && part != "2")
+    if options.real_part_1? || (!options.real_part_2? && (correct_answer_1.nil? || correct_answer_2))
       answer_1 = Runner.run_part("#{year}##{day}.1", correct_answer_1) do
         solution.part_1(File.new(input_path))
       end
     end
-    if part == "2" || (correct_answer_1 && !correct_answer_2) || (correct_answer_2 && part != "1")
+    if options.real_part_2? || (!options.real_part_1? && ((correct_answer_1 && !correct_answer_2) || correct_answer_2))
       answer_2 = Runner.run_part("#{year}##{day}.2", correct_answer_2) do
         solution.part_2(File.new(input_path))
       end
@@ -101,10 +98,10 @@ class Aoc < Thor
 
     return unless answer_1 || answer_2
 
-    if part != "1" && correct_answer_2
+    if correct_answer_2
       puts "🙌 You've already submitted the answers to both parts."
       return
-    elsif part == "1" && correct_answer_1
+    elsif options.real_part_1? && correct_answer_1
       puts "🙌 You've already submitted the answer to this part."
       return
     end
@@ -113,10 +110,11 @@ class Aoc < Thor
     submit = STDIN.gets.chomp.downcase
 
     if submit == "y" || submit == ""
+      options_part = options.real_part_1? ? "1" : (options.real_part_2? ? "2" : nil)
       inferred_part = correct_answer_1.nil? ? "1" : "2"
       aoc_api = AocApi.new(ENV["AOC_COOKIE"])
 
-      response = aoc_api.submit(year, day, part || inferred_part, answer_2 || answer_1)
+      response = aoc_api.submit(year, day, options_part || inferred_part, answer_2 || answer_1)
       message = response.match(/(?<=<article>).+(?=<\/article>)/m).to_s.strip
       markdown_message = ReverseMarkdown.convert(message)
       short_message = markdown_message
@@ -128,7 +126,7 @@ class Aoc < Thor
 
         instructions_path = InstructionsFile.download(year, day, overwrite: true)
 
-        if (part || inferred_part) == "1"
+        if (options_part || inferred_part) == "1"
           puts "Downloaded instructions for Part Two."
           `#{CONFIG["editor_command"]} #{instructions_path}`
 
