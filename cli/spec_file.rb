@@ -1,5 +1,5 @@
 class SpecFile
-  def self.create(year, day)
+  def self.create(year, day, notify_exists: true)
     spec_directory = File.join("spec", year)
     FileUtils.mkdir_p(spec_directory) if !Dir.exist?(spec_directory)
 
@@ -7,7 +7,7 @@ class SpecFile
     file_path = File.join(spec_directory, "#{padded_day}_spec.rb")
 
     if File.exist?(file_path)
-      puts "Already exists: #{file_path}"
+      puts "Already exists: #{file_path}" if notify_exists
     else
       File.write(file_path, source(year, day))
     end

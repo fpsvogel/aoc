@@ -131,6 +131,11 @@ class Aoc < Thor
         if (part || inferred_part) == "1"
           puts "Downloaded instructions for Part Two."
           `#{CONFIG["editor_command"]} #{instructions_path}`
+
+          spec_path = SpecFile.create(year, day, notify_exists: false)
+          spec = File.read(spec_path)
+          spec_without_skips = spec.gsub("  xit ", "  it ")
+          File.write(spec_path, spec_without_skips)
         end
       else
         puts "❌ #{short_message}"
