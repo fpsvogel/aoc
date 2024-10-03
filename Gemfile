@@ -2,13 +2,5 @@ source "https://rubygems.org"
 
 ruby file: ".ruby-version"
 
-gem "debug"
-gem "dotenv"
-gem "httparty"
-gem "pastel"
-gem "reverse_markdown"
-gem "rspec"
-gem "thor"
-
-# for my solutions
-gem "matrix"
+# Specify your gem's dependencies in aoc.gemspec
+gemspec

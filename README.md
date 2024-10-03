@@ -1,10 +1,35 @@
-# Advent of Code – Ruby
+# aoc
 
-These are my Advent of Code solutions in Ruby.
+CLI tool for doing Advent of Code in Ruby.
 
-The included CLI utility is based on [AoC-rb](https://github.com/Keirua/aoc-cli), with modifications. Here are all the commands:
+## Installation
+
+This gem isn't published yet, so for now you can install it by running these commands:
+
+```
+git clone https://github.com/fpsvogel/aoc.git
+cd aoc
+rake install
+```
+
+## Usage
+
+See [Commands](#commands) below for all the details, but here's the typical flow for solving a puzzle:
+
+1. Run `aoc bootstrap` (or `aoc b`), which creates files for the puzzle after the one you finished last, namely: instructions, solution template, specs template, input, and other people's solutions.
+1. Fill in the spec for Part One, typically based on an example in the instructions.
+2. Run `aoc run` (or `aoc r`), which runs the specs for this puzzle. The Part Two spec is initially skipped.
+3. Implement a solution for Part One.
+4. When specs pass, `aoc run` will also run your solution with the input file, and will prompt you whether you want to submit the resulting answer.
+5. After you've submitted a correct answer for Part One, the instructions file is updated with Part Two instructions, and the Part Two spec is unskipped so that you can continue with `aoc run` as in Part One.
+6. After you're completely done with the puzzle (be sure to look at other people's solutions and improve yours!), run `aoc bootstrap` to prep the next puzzle.
+
+## Commands
+
+All commands can be abbreviated with their first letter, e.g. `aoc b` for `aoc bootstrap`.
 
 - `aoc bootstrap YEAR DAY`
+  - Commits new and modified solutions to Git.
   - Downloads the input and instructions files for the given day.
   - Creates a source file and a spec file for the given day.
   - Downloads other people's solutions, from these repos:
@@ -13,8 +38,8 @@ The included CLI utility is based on [AoC-rb](https://github.com/Keirua/aoc-cli)
     - <https://github.com/ahorner/advent-of-code>
     - <https://github.com/ZogStriP/adventofcode>
     - <https://github.com/erikw/advent-of-code-solutions>
-  - *If the day argument is omitted, it bootstraps the first day of the given year.*
-  - *If both arguments are omitted, it bootstraps the puzzle that comes after the one that was last committed to Git.*
+  - *If both arguments are omitted, it bootstraps the next puzzle, i.e. the puzzle after the one that was last committed to Git.*
+  - *If only the day argument is omitted, it bootstraps the next puzzle of the given year.*
   - Opens all of the new files using `editor_command` in `config.yml`.
   - Note: For easy file-searchability (Ctrl+P in VS Code), the instructions file is named (for day 1 of 2015, for example) `1501.md` and the other solutions are named `15011.rb` and `15012.rb` (part 1 and part 2).
 - `aoc run YEAR DAY`
@@ -25,28 +50,17 @@ The included CLI utility is based on [AoC-rb](https://github.com/Keirua/aoc-cli)
     - `--real_part_1` (`-o`) runs only Part One with the real input.
     - `--real_part_2` (`-t`) runs only Part Two with the real input.
   - Optionally submits the answer, via a prompt that appears if it has not already been submitted.
-  - *If the part argument is omitted, it is inferred from the part(s) already solved.*
-  - *If all arguments are omitted, it runs the puzzle that is untracked in Git, if any.*
-- `aoc status` shows progress, total and by year, based on the number of your solutions committed in Git.
+  - *If both arguments are omitted, it runs the puzzle that is untracked in Git, if any.*
+- `aoc git` commits new and modified solutions to Git. This is handy if (unlike the basic "solve and then run `aoc bootstrap`" flow) you like to make multiple commits per solution, e.g. one after your own solution and then another after improving it based on other people's solutions.
+- `aoc progress` shows progress (total and by year) based on the number of your solutions committed in Git.
+- `aoc config` opens the config YAML file.
 
-## Installation
+## Other AoC Ruby CLI tools
 
- - Clone this repo.
- - Run `bundle install`.
- - Delete the `solutions` directory if you want to write your own solutions rather than look at mine.
- - Change the `editor_command` in `config.yml` if you use an editor other than VS Code.
- - Log in to [Advent of Code](https://adventofcode.com/), and copy your session cookie.
-   - Firefox: Developer Tools ⇨ Storage tab ⇨ Cookies
-   - Chrome: Developer Tools ⇨ Application tab ⇨ Cookies
- - Rename the file `.env.example` to `.env`.
- - Paste the cookie into the `AOC_COOKIE` variable. The `.env` file should look like this:
-```
-AOC_COOKIE="536…"
-```
-
-You're done! You can now start working on your first puzzle by running the `aoc bootstrap` command, e.g. for Day 1 of 2023: `aoc bootstrap 2023 1` or (for short) `aoc b 23 1`.
-
-## For the curious: other AoC Ruby CLI tools
+This gem was originally based on [AoC-rb](https://github.com/Keirua/aoc-cli). Here are other similar tools:
 
 - [AocRb](https://github.com/pacso/aoc_rb)
 - [aoc-cli](https://github.com/apexatoll/aoc-cli)
+- [aocli](https://github.com/astley92/aocli)
+- [advent_of_code_cli](https://github.com/egiurleo/advent_of_code_cli)
+- [advent_of_code_generator](https://github.com/Tyflomate/advent_of_code_generator)

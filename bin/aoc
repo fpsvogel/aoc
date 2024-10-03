@@ -2,7 +2,6 @@
 
 require "fileutils"
 require "httparty"
-require "dotenv/load"
 require "thor"
 require "pastel"
 require "benchmark"
@@ -14,39 +13,49 @@ require "debug"
 
 class AppError < StandardError; end
 class InputError < AppError; end
-class AuthError < AppError; end
+class ConfigError < AppError; end
 
-cli_files = File.join(File.dirname(__FILE__), "cli", "*.rb")
-solution_files = File.join(File.dirname(__FILE__), "solutions", "**", "*.rb")
-Dir[cli_files].each { |file| require file }
-Dir[solution_files].each { |file| require file }
+Dir[File.join(__dir__, "..", "lib", "aoc", "*.rb")].each do |file|
+  require file
+end
 
-CONFIG = YAML.load(File.read("config.yml"))
-PASTEL = Pastel.new
+begin
+  PASTEL = Pastel.new
+  Aoc::Config.load!
+rescue AppError => e
+  puts PASTEL.red(e.message)
+  exit
+end
+
+solution_files = File.join(Dir.pwd, "src", "**", "*.rb")
+Dir[solution_files].each do |file|
+  require file
+end
 
 # The CLI application
-class Aoc < Thor
+class AocApp < Thor
   desc "bootstrap YEAR [DAY]", "for a given year and day (defaults to Day 1), " \
     "creates files: input, instructions, other solutions, source, and specs"
-  method_option :bootstrap, aliases: "-b"
   def bootstrap(year = nil, day = nil)
     year, day = validate_year_and_day(year, day)
 
-    input_path = InputFile.download(year, day)
-    instructions_path = InstructionsFile.download(year, day)
-    source_path = SourceFile.create(year, day)
-    spec_path = SpecFile.create(year, day)
-    others_1_path, others_2_path = OtherSolutionsFiles.download(year, day)
+    git
+
+    input_path = Aoc::InputFile.download(year, day)
+    instructions_path = Aoc::InstructionsFile.download(year, day)
+    source_path = Aoc::SourceFile.create(year, day)
+    spec_path = Aoc::SpecFile.create(year, day)
+    others_1_path, others_2_path = Aoc::OtherSolutionsFiles.download(year, day)
 
     puts "🤘 Bootstrapped #{year}##{day}"
 
     # Open the new files.
-    `#{CONFIG["editor_command"]} #{others_1_path}`
-    `#{CONFIG["editor_command"]} #{others_2_path}`
-    `#{CONFIG["editor_command"]} #{input_path}`
-    `#{CONFIG["editor_command"]} #{source_path}`
-    `#{CONFIG["editor_command"]} #{spec_path}`
-    `#{CONFIG["editor_command"]} #{instructions_path}`
+    `#{Aoc::Config.editor_command} #{others_1_path}`
+    `#{Aoc::Config.editor_command} #{others_2_path}`
+    `#{Aoc::Config.editor_command} #{input_path}`
+    `#{Aoc::Config.editor_command} #{source_path}`
+    `#{Aoc::Config.editor_command} #{spec_path}`
+    `#{Aoc::Config.editor_command} #{instructions_path}`
   rescue AppError => e
     puts Pastel.new.red(e.message)
   end
@@ -68,12 +77,12 @@ class Aoc < Thor
 
     year, day = validate_year_and_day(year, day, default_untracked_or_done: true) || return
 
-    solution = Runner.load_solution(year, day)
-    input_path = InputFile.download(year, day, notify_exists: false)
+    solution = Aoc::Runner.load_solution(year, day)
+    input_path = Aoc::InputFile.download(year, day, notify_exists: false)
     url = "https://adventofcode.com/#{year}/day/#{day}"
     answer_1, answer_2 = nil, nil
 
-    instructions_path = InstructionsFile.download(year, day, notify_exists: false, overwrite: false)
+    instructions_path = Aoc::InstructionsFile.download(year, day, notify_exists: false, overwrite: false)
     instructions = File.read(instructions_path)
     correct_answer_1, correct_answer_2 = instructions.scan(/Your puzzle answer was `([^`]+)`./).flatten
 
@@ -83,15 +92,16 @@ class Aoc < Thor
     elsif !(options.real_part_1? || options.real_part_2?)
       specs_passed = run_specs_before_real(year, day)
       return unless specs_passed
+      puts "👍 Specs passed!\n\n"
     end
 
     if options.real_part_1? || (!options.real_part_2? && (correct_answer_1.nil? || correct_answer_2))
-      answer_1 = Runner.run_part("#{year}##{day}.1", correct_answer_1) do
+      answer_1 = Aoc::Runner.run_part("#{year}##{day}.1", correct_answer_1) do
         solution.part_1(File.new(input_path))
       end
     end
     if options.real_part_2? || (!options.real_part_1? && ((correct_answer_1 && !correct_answer_2) || correct_answer_2))
-      answer_2 = Runner.run_part("#{year}##{day}.2", correct_answer_2) do
+      answer_2 = Aoc::Runner.run_part("#{year}##{day}.2", correct_answer_2) do
         solution.part_2(File.new(input_path))
       end
     end
@@ -107,12 +117,12 @@ class Aoc < Thor
     end
 
     puts "Submit solution? (Y/n)"
-    submit = STDIN.gets.chomp.downcase
+    submit = STDIN.gets.strip.downcase
 
     if submit == "y" || submit == ""
       options_part = options.real_part_1? ? "1" : (options.real_part_2? ? "2" : nil)
       inferred_part = correct_answer_1.nil? ? "1" : "2"
-      aoc_api = AocApi.new(ENV["AOC_COOKIE"])
+      aoc_api = Aoc::Api.new(Aoc::Config.aoc_cookie)
 
       response = aoc_api.submit(year, day, options_part || inferred_part, answer_2 || answer_1)
       message = response.match(/(?<=<article>).+(?=<\/article>)/m).to_s.strip
@@ -124,13 +134,13 @@ class Aoc < Thor
       if short_message.start_with?("That's the right answer!")
         puts "⭐ #{short_message}"
 
-        instructions_path = InstructionsFile.download(year, day, overwrite: true)
+        instructions_path = Aoc::InstructionsFile.download(year, day, overwrite: true)
 
         if (options_part || inferred_part) == "1"
           puts "Downloaded instructions for Part Two."
-          `#{CONFIG["editor_command"]} #{instructions_path}`
+          `#{Aoc::Config.editor_command} #{instructions_path}`
 
-          spec_path = SpecFile.create(year, day, notify_exists: false)
+          spec_path = Aoc::SpecFile.create(year, day, notify_exists: false)
           spec = File.read(spec_path)
           spec_without_skips = spec.gsub("  xit ", "  it ")
           File.write(spec_path, spec_without_skips)
@@ -143,14 +153,14 @@ class Aoc < Thor
     puts PASTEL.red(e.message)
   end
 
-  desc "status", "shows progress, total and by year, based on the number of " \
+  desc "progress", "shows progress, total and by year, based on the number of " \
     "your solutions committed in Git"
-  def status
+  def progress
     past_year_count = 25 * (Date.today.year - 1 - 2015)
     this_year_count = (Date.today.month == 12 ? Date.today.day : 0).clamp(..25)
     total_count = past_year_count + this_year_count
 
-    my_counts_by_year = `git ls-files solutions/`
+    my_counts_by_year = `git ls-files src/`
       .split("\n")
       .select { |path| File.basename(path).match?(/\d\d\.rb/) }
       .group_by { |path| File.basename(File.dirname(path)) }
@@ -174,6 +184,29 @@ class Aoc < Thor
 
       puts "#{PASTEL.blue(year + ":")}\t#{year_percent}%\t#{my_count}/#{year_count}"
     end
+  end
+
+  desc "git", "commits new and modified solutions to Git"
+  def git
+    # TODO extract this etc. into a Git interface
+    changes = `git status -su | grep -e "^?? src" -e "^?? spec"`
+    files_added = !changes.empty?
+    if changes.empty?
+      changes = `git status -su | grep -e "^ M src" -e "^ M spec"`
+    end
+    change_year, change_day = nil, nil
+    unless changes.empty?
+      match = changes.match(/(?<year>\d{4})\/(?<day>\d\d)(?:_spec)?.rb$/)
+      change_year, change_day = match[:year], match[:day]
+    end
+    `git add -A`
+    `git commit -m "#{files_added ? "Solve" : "Improve"} #{change_year}##{change_day}"`
+  end
+
+  desc "config", "opens the config YAML file"
+  def config
+    puts "Opening #{Aoc::Config.config_path} ..."
+    `#{Aoc::Config.editor_command} #{Aoc::Config.config_path}`
   end
 
   private
@@ -210,7 +243,7 @@ class Aoc < Thor
       raise InputError, "If you specify the day, specify the year also."
     elsif !day
       if default_untracked_or_done
-        untracked_solutions = `git status -su | grep "^?? #{File.join("solutions", year || "")}"`
+        untracked_solutions = `git status -su | grep "^?? #{File.join("src", year || "")}"`
 
         unless untracked_solutions.empty?
           match = untracked_solutions.match(/(?<year>\d{4})\/(?<day>\d\d).rb$/)
@@ -219,21 +252,26 @@ class Aoc < Thor
       end
 
       if !default_untracked_or_done || untracked_solutions.empty?
-        if year && !Dir.exist?(File.join("solutions", year))
-          FileUtils.mkdir_p(File.join("solutions", year))
+        if year && !Dir.exist?(File.join("src", year))
+          FileUtils.mkdir_p(File.join("src", year))
           day = "1"
         else
-          last_committed_solution = `git log -n 1 --diff-filter=A --name-only --pretty=format: #{File.join("solutions", year || "")}`.lines.last
+          last_committed_solution = `git log -n 1 --diff-filter=A --name-only --pretty=format: #{File.join("src", year || "")}`.lines.last
 
-          unless last_committed_solution
-            raise InputError, "Could not find a committed solution file. " \
-              "Run `aoc bootstrap` again with the year and day."
+          if last_committed_solution
+            match = last_committed_solution.match(/(?<year>\d{4})\/(?<day>\d\d).rb$/)
+
+            year, day = match[:year], match[:day]
+            day = day.next unless default_untracked_or_done
+          else
+            year = nil
+            loop do
+              puts "What year do you want to bootstrap?"
+              year_input = gets.strip
+              break if year = year_input.match(/\A\s*\d{4}\s*/)&.to_s&.strip
+            end
+            day = "1"
           end
-
-          match = last_committed_solution.match(/(?<year>\d{4})\/(?<day>\d\d).rb$/)
-
-          year, day = match[:year], match[:day]
-          day = day.next unless default_untracked_or_done
         end
       end
     end
@@ -252,6 +290,4 @@ class Aoc < Thor
   end
 end
 
-Dotenv.load("#{__dir__}/.env")
-Dotenv.require_keys("AOC_COOKIE")
-Aoc.start
+AocApp.start

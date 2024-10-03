@@ -1,7 +1,1 @@
-.idea/
-input/**/*
-instructions/**/*
-others/**/*
-Gemfile.lock
-.env
-bin
+**/*.gem
