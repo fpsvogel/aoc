@@ -39,7 +39,7 @@ class AocApp < Thor
   def bootstrap(year = nil, day = nil)
     year, day = validate_year_and_day(year, day)
 
-    git
+    git_commit
 
     input_path = Aoc::InputFile.download(year, day)
     instructions_path = Aoc::InstructionsFile.download(year, day)
@@ -134,6 +134,7 @@ class AocApp < Thor
       if short_message.start_with?("That's the right answer!")
         puts "⭐ #{short_message}"
 
+        # TODO don't re-download if the instructions file already contains the next part
         instructions_path = Aoc::InstructionsFile.download(year, day, overwrite: true)
 
         if (options_part || inferred_part) == "1"
@@ -186,8 +187,11 @@ class AocApp < Thor
     end
   end
 
+  # TODO extract/abstract run_day contents (without terminal output) to a class,
+  # then use it here to silently run each untracked puzzle before committing it,
+  # and if anything is incorrect then show confirmation prompt to user.
   desc "git", "commits new and modified solutions to Git"
-  def git
+  def git_commit
     # TODO extract this etc. into a Git interface
     changes = `git status -su | grep -e "^?? src" -e "^?? spec"`
     files_added = !changes.empty?
