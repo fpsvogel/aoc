@@ -34,8 +34,9 @@ end
 
 # The CLI application
 class AocApp < Thor
-  desc "bootstrap YEAR [DAY]", "for a given year and day (defaults to Day 1), " \
-    "creates files: input, instructions, other solutions, source, and specs"
+  desc "bootstrap [YEAR] [DAY]", "Creates puzzle files for the next day, or " \
+    "for a given year and optionally day (defaults to Day 1). Files created: " \
+    "source, specs, input, instructions, and other solutions."
   def bootstrap(year = nil, day = nil)
     year, day = validate_year_and_day(year, day)
 
@@ -47,7 +48,7 @@ class AocApp < Thor
     spec_path = Aoc::SpecFile.create(year, day)
     others_1_path, others_2_path = Aoc::OtherSolutionsFiles.download(year, day)
 
-    puts "🤘 Bootstrapped #{year}##{day}"
+    puts "🤘 Bootstrapped #{year}##{day}\n\n"
 
     # Open the new files.
     `#{Aoc::Config.editor_command} #{others_1_path}`
@@ -56,6 +57,14 @@ class AocApp < Thor
     `#{Aoc::Config.editor_command} #{source_path}`
     `#{Aoc::Config.editor_command} #{spec_path}`
     `#{Aoc::Config.editor_command} #{instructions_path}`
+
+    last_committed_solution = `git log -n 1 --diff-filter=A --name-only --pretty=format: #{File.join("src", year || "")}`.lines.last
+    if !last_committed_solution
+      puts "Now fill in the spec for Part One with an example from the instructions, " \
+        "then run it with `#{PASTEL.blue.bold("aoc run")}` (or just `aoc`) as " \
+        "you implement the solution. When the spec passes, your solution will " \
+        "be run with the real input and you'll be prompted to submit your solution.\n"
+    end
   rescue AppError => e
     puts Pastel.new.red(e.message)
   end
@@ -66,7 +75,9 @@ class AocApp < Thor
   #   #part_1_first     # for my initial attempt
   #   #part_1_concise   # for a code-golf type solution
   #   #part_1_alt       # for an alternative approach
-  desc "run YEAR DAY", "executes a given day and year"
+  desc "run [YEAR] [DAY]", "Runs the puzzle that's untracked in Git, or the " \
+    "puzzle of the given day and year. Unless otherwise specified by flags, " \
+    "runs the specs and then (if specs pass) the real input."
   method_option :spec, type: :boolean, aliases: "-s"
   method_option :real_part_1, type: :boolean, aliases: "-o"
   method_option :real_part_2, type: :boolean, aliases: "-t"
@@ -75,7 +86,13 @@ class AocApp < Thor
       raise InputError, "Don't use --spec (-s) with --real_part_1 (-o) or --real_part_2 (-t)"
     end
 
-    year, day = validate_year_and_day(year, day, default_untracked_or_done: true) || return
+    year, day = validate_year_and_day(year, day, default_untracked_or_done: true)
+
+    untracked_solutions = `git status -su | grep "^?? #{File.join("src", year || "")}"`
+    if untracked_solutions.empty?
+      bootstrap(year, day)
+      return
+    end
 
     solution = Aoc::Runner.load_solution(year, day)
     input_path = Aoc::InputFile.download(year, day, notify_exists: false)
@@ -85,22 +102,27 @@ class AocApp < Thor
     instructions_path = Aoc::InstructionsFile.download(year, day, notify_exists: false, overwrite: false)
     instructions = File.read(instructions_path)
     correct_answer_1, correct_answer_2 = instructions.scan(/Your puzzle answer was `([^`]+)`./).flatten
+    skip_count = 0
 
     if options.spec?
       run_specs_only(year, day)
       return
     elsif !(options.real_part_1? || options.real_part_2?)
-      specs_passed = run_specs_before_real(year, day)
+      specs_passed, skip_count = run_specs_before_real(year, day)
       return unless specs_passed
-      puts "👍 Specs passed!\n\n"
+      puts "👍 Specs passed!"
+      if skip_count > 1 || (skip_count == 1 && )
+        puts PASTEL.yellow.bold("🤐 #{skip_count} skipped, however")
+      end
+      puts "\n"
     end
 
-    if options.real_part_1? || (!options.real_part_2? && (correct_answer_1.nil? || correct_answer_2))
+    if options.real_part_1? || (!options.real_part_2? && ((correct_answer_1.nil? && skip_count <= 1) || correct_answer_2))
       answer_1 = Aoc::Runner.run_part("#{year}##{day}.1", correct_answer_1) do
         solution.part_1(File.new(input_path))
       end
     end
-    if options.real_part_2? || (!options.real_part_1? && ((correct_answer_1 && !correct_answer_2) || correct_answer_2))
+    if options.real_part_2? || (!options.real_part_1? && ((correct_answer_1 && !correct_answer_2 && skip_count.zero?) || correct_answer_2))
       answer_2 = Aoc::Runner.run_part("#{year}##{day}.2", correct_answer_2) do
         solution.part_2(File.new(input_path))
       end
@@ -117,6 +139,7 @@ class AocApp < Thor
     end
 
     puts "Submit solution? (Y/n)"
+    print PASTEL.green("> ")
     submit = STDIN.gets.strip.downcase
 
     if submit == "y" || submit == ""
@@ -132,19 +155,26 @@ class AocApp < Thor
         .sub(/ \[\[.+/, "")
 
       if short_message.start_with?("That's the right answer!")
-        puts "⭐ #{short_message}"
+        puts "⭐ #{short_message}\n\n"
 
         # TODO don't re-download if the instructions file already contains the next part
         instructions_path = Aoc::InstructionsFile.download(year, day, overwrite: true)
 
         if (options_part || inferred_part) == "1"
-          puts "Downloaded instructions for Part Two."
+          puts "Downloaded instructions for Part Two.\n\n"
           `#{Aoc::Config.editor_command} #{instructions_path}`
 
           spec_path = Aoc::SpecFile.create(year, day, notify_exists: false)
           spec = File.read(spec_path)
           spec_without_skips = spec.gsub("  xit ", "  it ")
           File.write(spec_path, spec_without_skips)
+        end
+
+        last_committed_solution = `git log -n 1 --diff-filter=A --name-only --pretty=format: #{File.join("src", year || "")}`.lines.last
+        if !last_committed_solution
+          puts "\n\nAfter you're completely done with the puzzle (be sure to " \
+            "look at other people's solutions and improve yours!), run " \
+            "`#{PASTEL.blue.bold("aoc bootstrap")}` (or `aoc b`) to prep the next puzzle.\n"
         end
       else
         puts "❌ #{short_message}"
@@ -154,8 +184,8 @@ class AocApp < Thor
     puts PASTEL.red(e.message)
   end
 
-  desc "progress", "shows progress, total and by year, based on the number of " \
-    "your solutions committed in Git"
+  desc "progress", "Shows progress based on the number of your solutions " \
+    "committed in Git."
   def progress
     past_year_count = 25 * (Date.today.year - 1 - 2015)
     this_year_count = (Date.today.month == 12 ? Date.today.day : 0).clamp(..25)
@@ -190,7 +220,7 @@ class AocApp < Thor
   # TODO extract/abstract run_day contents (without terminal output) to a class,
   # then use it here to silently run each untracked puzzle before committing it,
   # and if anything is incorrect then show confirmation prompt to user.
-  desc "git", "commits new and modified solutions to Git"
+  desc "git", "Commits new and modified solutions to Git."
   def git_commit
     # TODO extract this etc. into a Git interface
     changes = `git status -su | grep -e "^?? src" -e "^?? spec"`
@@ -207,7 +237,7 @@ class AocApp < Thor
     `git commit -m "#{files_added ? "Solve" : "Improve"} #{change_year}##{change_day}"`
   end
 
-  desc "config", "opens the config YAML file"
+  desc "config", "Opens the config YAML file."
   def config
     puts "Opening #{Aoc::Config.config_path} ..."
     `#{Aoc::Config.editor_command} #{Aoc::Config.config_path}`
@@ -233,9 +263,9 @@ class AocApp < Thor
       RSpec.reset
       RSpec::Core::Runner.run(spec_filename)
 
-      false
+      [false, nil]
     else
-      true
+      [true, out.string.scan("skipped with xit").count]
     end
   end
 
@@ -271,7 +301,9 @@ class AocApp < Thor
             year = nil
             loop do
               puts "What year do you want to bootstrap?"
+              print PASTEL.green("> ")
               year_input = gets.strip
+              puts
               break if year = year_input.match(/\A\s*\d{4}\s*/)&.to_s&.strip
             end
             day = "1"
@@ -292,6 +324,8 @@ class AocApp < Thor
 
     [year.to_s, day.to_s]
   end
+
+  default_task :run_day
 end
 
 AocApp.start

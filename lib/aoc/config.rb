@@ -4,6 +4,7 @@ module Aoc
       attr_reader :editor_command, :aoc_cookie
 
       def config_path = File.join(ENV["HOME"], ".aoc.yml")
+      def default_editor_command = "code"
 
       def load!
         if !File.exist?(config_path)
@@ -13,12 +14,14 @@ module Aoc
 
           @editor_command = config["editor_command"] || (raise ConfigError, "Missing key `editor_command` in #{config_path}")
           @aoc_cookie = config["aoc_cookie"] || (raise ConfigError, "Missing key `aoc_cookie` in #{config_path}")
-
-          init_files!
         end
+
+        init_files!
       end
 
       def refresh_aoc_cookie!
+        print "Uh oh, your Advent of Code session cookie has expired or was " \
+          "incorrectly entered. "
         config = YAML.load(config_path)
         @aoc_cookie = input_aoc_cookie
         File.write(config_path, config_yaml)
@@ -36,11 +39,16 @@ module Aoc
       end
 
       def create_config!
+        puts "🎄 Welcome to Advent of Code in Ruby! 🎄\n\n"
+        puts "Let's start with some configuration.\n\n"
         puts "What's the shell command to start your editor? (default: #{default_editor_command})"
+        print PASTEL.green("> ")
         @editor_command = STDIN.gets.strip
         @editor_command = default_editor_command if editor_command.strip.empty?
 
+        puts
         @aoc_cookie = input_aoc_cookie
+        puts "\n✅ Config file created at #{config_path}. Run `aoc config` to open it.\n\n"
 
         File.write(config_path, config_yaml)
       end
@@ -53,8 +61,11 @@ module Aoc
           puts PASTEL.dark.white("To find it, log in to [Advent of Code](https://adventofcode.com/) and then:")
           puts PASTEL.dark.white("  Firefox: Developer Tools ⇨ Storage tab ⇨ Cookies")
           puts PASTEL.dark.white("  Chrome: Developer Tools ⇨ Application tab ⇨ Cookies")
+          print PASTEL.green("> ")
 
           aoc_cookie = STDIN.gets.strip
+
+          puts
 
           break unless aoc_cookie.strip.empty?
         end
@@ -66,7 +77,11 @@ module Aoc
         return true if @consented_to_create_files
 
         puts "Files will be created in the current directory #{Dir.pwd}. Continue? (Y/n)"
+        print PASTEL.green("> ")
         continue = STDIN.gets.strip.downcase
+
+        puts
+
         exit unless continue == "y" || continue == ""
         @consented_to_create_files = true
       end
@@ -107,6 +122,10 @@ module Aoc
           `git init`
           `git add .`
           `git commit -m "Initial commit"`
+        end
+
+        if @consented_to_create_files
+          puts "✅ Initial files created and committed to a new Git repository.\n\n"
         end
       end
     end

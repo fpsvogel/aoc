@@ -24,7 +24,7 @@ module Aoc
             puts PASTEL.bright_white.bold(answer)
           end
         else
-          puts "No result for #{part_name}"
+          puts "❌ No result for #{part_name}"
         end
       end
 

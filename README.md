@@ -14,21 +14,16 @@ rake install
 
 ## Usage
 
-See [Commands](#commands) below for all the details, but here's the typical flow for solving a puzzle:
-
-1. Run `aoc bootstrap` (or `aoc b`), which creates files for the puzzle after the one you finished last, namely: instructions, solution template, specs template, input, and other people's solutions.
-1. Fill in the spec for Part One, typically based on an example in the instructions.
-2. Run `aoc run` (or `aoc r`), which runs the specs for this puzzle. The Part Two spec is initially skipped.
-3. Implement a solution for Part One.
-4. When specs pass, `aoc run` will also run your solution with the input file, and will prompt you whether you want to submit the resulting answer.
-5. After you've submitted a correct answer for Part One, the instructions file is updated with Part Two instructions, and the Part Two spec is unskipped so that you can continue with `aoc run` as in Part One.
-6. After you're completely done with the puzzle (be sure to look at other people's solutions and improve yours!), run `aoc bootstrap` to prep the next puzzle.
+1. Create a directory where you want to store your solutions.
+2. In that directory, run the command `aoc` and follow the prompts!
 
 ## Commands
 
-All commands can be abbreviated with their first letter, e.g. `aoc b` for `aoc bootstrap`.
+Okay, if you *really* want to know all the details, here they are.
 
-- `aoc bootstrap YEAR DAY`
+Note: all commands can be abbreviated with their first letter, e.g. `aoc b` for `aoc bootstrap`.
+
+- `aoc bootstrap [YEAR] [DAY]`
   - Commits new and modified solutions to Git.
   - Downloads the input and instructions files for the given day.
   - Creates a source file and a spec file for the given day.
@@ -42,7 +37,7 @@ All commands can be abbreviated with their first letter, e.g. `aoc b` for `aoc b
   - *If only the day argument is omitted, it bootstraps the next puzzle of the given year.*
   - Opens all of the new files using `editor_command` in `config.yml`.
   - Note: For easy file-searchability (Ctrl+P in VS Code), the instructions file is named (for day 1 of 2015, for example) `1501.md` and the other solutions are named `15011.rb` and `15012.rb` (part 1 and part 2).
-- `aoc run YEAR DAY`
+- `aoc run [YEAR] [DAY]`
   - Runs specs for the given day.
   - Unless specs fail, runs the currently in-progress part (Part One or Part Two) of the given day.
   - If you're seeing specs run when you want to run only the real input, or vice versa, add one of the following flags:
@@ -54,6 +49,7 @@ All commands can be abbreviated with their first letter, e.g. `aoc b` for `aoc b
 - `aoc git` commits new and modified solutions to Git. This is handy if (unlike the basic "solve and then run `aoc bootstrap`" flow) you like to make multiple commits per solution, e.g. one after your own solution and then another after improving it based on other people's solutions.
 - `aoc progress` shows progress (total and by year) based on the number of your solutions committed in Git.
 - `aoc config` opens the config YAML file.
+- `aoc help` shows a summary of each command.
 
 ## Other AoC Ruby CLI tools
 
