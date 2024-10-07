@@ -111,7 +111,7 @@ class AocApp < Thor
       specs_passed, skip_count = run_specs_before_real(year, day)
       return unless specs_passed
       puts "👍 Specs passed!"
-      if skip_count > 1 || (skip_count == 1 && )
+      if skip_count > 1 || (skip_count == 1 && correct_answer_1)
         puts PASTEL.yellow.bold("🤐 #{skip_count} skipped, however")
       end
       puts "\n"
@@ -235,12 +235,6 @@ class AocApp < Thor
     end
     `git add -A`
     `git commit -m "#{files_added ? "Solve" : "Improve"} #{change_year}##{change_day}"`
-  end
-
-  desc "config", "Opens the config YAML file."
-  def config
-    puts "Opening #{Aoc::Config.config_path} ..."
-    `#{Aoc::Config.editor_command} #{Aoc::Config.config_path}`
   end
 
   private

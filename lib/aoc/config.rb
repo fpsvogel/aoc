@@ -3,28 +3,33 @@ module Aoc
     class << self
       attr_reader :editor_command, :aoc_cookie
 
-      def config_path = File.join(ENV["HOME"], ".aoc.yml")
+      def config_filename = "config.yml"
       def default_editor_command = "code"
 
       def load!
-        if !File.exist?(config_path)
+        if !File.exist?(config_filename)
           create_config!
+          @files_created = true
         else
-          config = File.read(config_path).then { YAML.load _1 }
+          config = File.read(config_filename).then { YAML.load _1 }
 
-          @editor_command = config["editor_command"] || (raise ConfigError, "Missing key `editor_command` in #{config_path}")
-          @aoc_cookie = config["aoc_cookie"] || (raise ConfigError, "Missing key `aoc_cookie` in #{config_path}")
+          @editor_command = config["editor_command"] || (raise ConfigError, "Missing key `editor_command` in #{config_filename}")
+          @aoc_cookie = config["aoc_cookie"] || (raise ConfigError, "Missing key `aoc_cookie` in #{config_filename}")
         end
 
-        init_files!
+        init_other_files!
+
+        if @files_created
+          puts "✅ Initial files created and committed to a new Git repository.\n\n"
+        end
       end
 
       def refresh_aoc_cookie!
         print "Uh oh, your Advent of Code session cookie has expired or was " \
           "incorrectly entered. "
-        config = YAML.load(config_path)
+        config = YAML.load(config_filename)
         @aoc_cookie = input_aoc_cookie
-        File.write(config_path, config_yaml)
+        File.write(config_filename, config_yaml)
       end
 
       private
@@ -41,6 +46,7 @@ module Aoc
       def create_config!
         puts "🎄 Welcome to Advent of Code in Ruby! 🎄\n\n"
         puts "Let's start with some configuration.\n\n"
+
         puts "What's the shell command to start your editor? (default: #{default_editor_command})"
         print PASTEL.green("> ")
         @editor_command = STDIN.gets.strip
@@ -48,9 +54,8 @@ module Aoc
 
         puts
         @aoc_cookie = input_aoc_cookie
-        puts "\n✅ Config file created at #{config_path}. Run `aoc config` to open it.\n\n"
 
-        File.write(config_path, config_yaml)
+        File.write(config_filename, config_yaml)
       end
 
       def input_aoc_cookie
@@ -73,59 +78,49 @@ module Aoc
         aoc_cookie
       end
 
-      def consent_to_create_files
-        return true if @consented_to_create_files
-
-        puts "Files will be created in the current directory #{Dir.pwd}. Continue? (Y/n)"
-        print PASTEL.green("> ")
-        continue = STDIN.gets.strip.downcase
-
-        puts
-
-        exit unless continue == "y" || continue == ""
-        @consented_to_create_files = true
-      end
-
-      def init_files!
-        if !Dir.exist?("src") && consent_to_create_files
+      def init_other_files!
+        if !Dir.exist?("src")
           FileUtils.mkdir_p("src")
+          @files_created = true
         end
 
-        if !Dir.exist?("spec") && consent_to_create_files
+        if !Dir.exist?("spec")
           FileUtils.mkdir_p("spec")
+          @files_created = true
         end
 
-        if !File.exist?(".gitignore") && consent_to_create_files
-          File.write(".gitignore", "input/**/*\ninstructions/**/*\nothers/**/*\n")
+        if !File.exist?(".gitignore")
+          File.write(".gitignore", "input/**/*\ninstructions/**/*\nothers/**/*\nconfig.yml\n")
+          @files_created = true
         end
 
-        if !File.exist?(".ruby-version") && consent_to_create_files
+        if !File.exist?(".ruby-version")
           File.write(".ruby-version", "3.3.0\n")
+          @files_created = true
         end
 
-        if !File.exist?("Gemfile") && consent_to_create_files
+        if !File.exist?("Gemfile")
           File.write("Gemfile", "source \"https://rubygems.org\"\n\nruby file: \".ruby-version\"\n\n# Gems required by your solutions:\n")
+          @files_created = true
         end
 
         spec_helper_path = File.join("spec", "spec_helper.rb")
-        if (!File.exist?(".rspec") || !File.exist?(spec_helper_path)) && consent_to_create_files
+        if (!File.exist?(".rspec") || !File.exist?(spec_helper_path))
           rspec_init_output = `rspec --init`
           unless rspec_init_output.match?(/exist\s+spec.spec_helper.rb/)
             original_spec_helper = File.read(spec_helper_path)
             spec_helper_addition = "require \"debug\"\n\nDir[File.join(__dir__, \"..\", \"src\", \"**\", \"*.rb\")].each do |file|\n  require file\nend\n\n"
             File.write(spec_helper_path, spec_helper_addition + original_spec_helper)
           end
+          @files_created = true
         end
 
         git_repo_exists = `git rev-parse --is-inside-work-tree 2> /dev/null`.chomp
-        if git_repo_exists != "true" && consent_to_create_files
+        if git_repo_exists != "true"
           `git init`
           `git add .`
           `git commit -m "Initial commit"`
-        end
-
-        if @consented_to_create_files
-          puts "✅ Initial files created and committed to a new Git repository.\n\n"
+          @files_created = true
         end
       end
     end

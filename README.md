@@ -48,7 +48,6 @@ Note: all commands can be abbreviated with their first letter, e.g. `aoc b` for 
   - *If both arguments are omitted, it runs the puzzle that is untracked in Git, if any.*
 - `aoc git` commits new and modified solutions to Git. This is handy if (unlike the basic "solve and then run `aoc bootstrap`" flow) you like to make multiple commits per solution, e.g. one after your own solution and then another after improving it based on other people's solutions.
 - `aoc progress` shows progress (total and by year) based on the number of your solutions committed in Git.
-- `aoc config` opens the config YAML file.
 - `aoc help` shows a summary of each command.
 
 ## Other AoC Ruby CLI tools
@@ -60,3 +59,4 @@ This gem was originally based on [AoC-rb](https://github.com/Keirua/aoc-cli). He
 - [aocli](https://github.com/astley92/aocli)
 - [advent_of_code_cli](https://github.com/egiurleo/advent_of_code_cli)
 - [advent_of_code_generator](https://github.com/Tyflomate/advent_of_code_generator)
+- [advent-rb](https://github.com/dnlgrv/advent-rb)
