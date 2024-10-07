@@ -1,6 +1,13 @@
 # Advent of Ruby
 
-CLI tool for doing Advent of Code in Ruby.
+There are [lots of CLI tools for doing Advent of Code in Ruby](#other-aoc-ruby-cli-tools). Why make another?
+
+This one does a few things differently:
+
+- It shows other people's solutions. This was roughly inspired by [Exercism's community solutions](https://exercism.org/tracks/ruby/exercises/circular-buffer/solutions).
+- It's not geared toward the competition in December, but instead toward solving puzzles across all years.
+- It has a CLI that is simple to the point of magical, which mostly involves spamming the `arb` command.
+- It uses Git instead of a database to track the user's progress and current state.
 
 ## Installation
 
