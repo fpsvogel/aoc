@@ -2,7 +2,7 @@ module Arb
   class InputFile
     def self.download(year, day, notify_exists: true)
       year_directory = File.join("input", year)
-      FileUtils.mkdir_p(year_directory) if !Dir.exist?(year_directory)
+      Dir.mkdir(year_directory) if !Dir.exist?(year_directory)
 
       padded_day = day.rjust(2, "0")
       file_path = File.join(year_directory, "#{padded_day}.txt")

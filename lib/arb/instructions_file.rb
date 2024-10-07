@@ -2,7 +2,7 @@ module Arb
   class InstructionsFile
     def self.path(year, day)
       year_directory = File.join("instructions", year)
-      FileUtils.mkdir_p(year_directory) if !Dir.exist?(year_directory)
+      Dir.mkdir(year_directory) if !Dir.exist?(year_directory)
 
       padded_day = day.rjust(2, "0")
       year_last_two = year[-2..]

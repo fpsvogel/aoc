@@ -1,6 +1,5 @@
 #!/usr/bin/env ruby
 
-require "fileutils"
 require "httparty"
 require "thor"
 require "pastel"
@@ -284,7 +283,7 @@ class ArbApp < Thor
 
       if !default_untracked_or_done || untracked_solutions.empty?
         if year && !Dir.exist?(File.join("src", year))
-          FileUtils.mkdir_p(File.join("src", year))
+          Dir.mkdir(File.join("src", year))
           day = "1"
         else
           last_committed_solution = `git log -n 1 --diff-filter=A --name-only --pretty=format: #{File.join("src", year || "")}`.lines.last

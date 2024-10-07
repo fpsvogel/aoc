@@ -80,12 +80,12 @@ module Arb
 
       def init_other_files!
         if !Dir.exist?("src")
-          FileUtils.mkdir_p("src")
+          Dir.mkdir("src")
           @files_created = true
         end
 
         if !Dir.exist?("spec")
-          FileUtils.mkdir_p("spec")
+          Dir.mkdir("spec")
           @files_created = true
         end
 
