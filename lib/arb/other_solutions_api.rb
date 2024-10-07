@@ -1,4 +1,4 @@
-module Aoc
+module Arb
   class OtherSolutionsApi
     include HTTParty
     base_uri "https://raw.githubusercontent.com"

@@ -1,4 +1,4 @@
-module Aoc
+module Arb
   class OtherSolutionsFiles
     def self.download(year, day)
       year_directory = File.join("others", year)

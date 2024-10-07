@@ -1,22 +1,22 @@
 require "bundler/gem_tasks"
-require_relative "lib/aoc/version"
+require_relative "lib/arb/version"
 
 task default: :install
 
-gem_name = "aoc"
+gem_name = "advent_of_ruby"
 
 task :build do
   `gem build #{gem_name}.gemspec`
 end
 
 task :install => :build do
-  `gem install #{gem_name}-#{Aoc::VERSION}.gem`
+  `gem install #{gem_name}-#{Arb::VERSION}.gem`
   `rm -rf pkg`
   `rm *.gem`
 end
 
 task :publish => :build do
-  `gem push #{gem_name}-#{Aoc::VERSION}.gem`
+  `gem push #{gem_name}-#{Arb::VERSION}.gem`
   `rm -rf pkg`
   `rm *.gem`
 end

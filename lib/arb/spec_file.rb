@@ -1,4 +1,4 @@
-module Aoc
+module Arb
   class SpecFile
     def self.create(year, day, notify_exists: true)
       year_directory = File.join("spec", year)

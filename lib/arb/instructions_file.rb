@@ -1,4 +1,4 @@
-module Aoc
+module Arb
   class InstructionsFile
     def self.path(year, day)
       year_directory = File.join("instructions", year)
@@ -18,7 +18,7 @@ module Aoc
       else
         url = "https://adventofcode.com/#{year}/day/#{day}"
 
-        aoc_api = Aoc::Api.new(Config.aoc_cookie)
+        aoc_api = Arb::AocApi.new(Config.aoc_cookie)
         response = aoc_api.instructions(year, day)
         instructions = response.match(/(?<=<main>).+(?=<\/main>)/m).to_s
         markdown_instructions = ReverseMarkdown.convert(instructions).strip

@@ -1,13 +1,13 @@
-require_relative "lib/aoc/version"
+require_relative "lib/arb/version"
 
 Gem::Specification.new do |spec|
-  spec.name          = "aoc"
-  spec.version       = Aoc::VERSION
+  spec.name          = "advent_of_ruby"
+  spec.version       = Arb::VERSION
   spec.authors       = ["Felipe Vogel"]
   spec.email         = ["fps.vogel@gmail.com"]
 
-  spec.summary       = "CLI for Advent of Code in Ruby."
-  spec.homepage      = "https://github.com/fpsvogel/aoc"
+  spec.summary       = "CLI for Advent of Code in Ruby, via the `arb` command."
+  spec.homepage      = "https://github.com/fpsvogel/advent_of_ruby"
   spec.license       = "MIT"
   spec.required_ruby_version = "~> #{File.read(".ruby-version").strip}"
 
@@ -20,11 +20,11 @@ Gem::Specification.new do |spec|
 
   spec.metadata["allowed_push_host"] = "https://rubygems.org"
   spec.metadata["homepage_uri"] = spec.homepage
-  spec.metadata["source_code_uri"] = "https://github.com/fpsvogel/aoc"
-  spec.metadata["changelog_uri"] = "https://github.com/fpsvogel/aoc/blob/main/CHANGELOG.md"
+  spec.metadata["source_code_uri"] = "https://github.com/fpsvogel/advent_of_ruby"
+  spec.metadata["changelog_uri"] = "https://github.com/fpsvogel/avent_of_ruby/blob/main/CHANGELOG.md"
 
   spec.files = Dir["lib/**/*.rb"]
   spec.bindir = "bin"
-  spec.executables << "aoc"
+  spec.executables << "arb"
   spec.require_paths = ["lib"]
 end

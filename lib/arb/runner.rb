@@ -1,4 +1,4 @@
-module Aoc
+module Arb
   class Runner
     def self.load_solution(year, day)
       padded_day = day.rjust(2, "0")

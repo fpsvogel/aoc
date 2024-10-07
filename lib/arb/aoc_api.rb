@@ -1,5 +1,5 @@
-module Aoc
-  class Api
+module Arb
+  class AocApi
     include HTTParty
     base_uri "https://adventofcode.com"
 

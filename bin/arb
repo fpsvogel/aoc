@@ -15,13 +15,13 @@ class AppError < StandardError; end
 class InputError < AppError; end
 class ConfigError < AppError; end
 
-Dir[File.join(__dir__, "..", "lib", "aoc", "*.rb")].each do |file|
+Dir[File.join(__dir__, "..", "lib", "arb", "*.rb")].each do |file|
   require file
 end
 
 begin
   PASTEL = Pastel.new
-  Aoc::Config.load!
+  Arb::Config.load!
 rescue AppError => e
   puts PASTEL.red(e.message)
   exit
@@ -33,7 +33,7 @@ Dir[solution_files].each do |file|
 end
 
 # The CLI application
-class AocApp < Thor
+class ArbApp < Thor
   desc "bootstrap [YEAR] [DAY]", "Creates puzzle files for the next day, or " \
     "for a given year and optionally day (defaults to Day 1). Files created: " \
     "source, specs, input, instructions, and other solutions."
@@ -42,26 +42,26 @@ class AocApp < Thor
 
     git_commit
 
-    input_path = Aoc::InputFile.download(year, day)
-    instructions_path = Aoc::InstructionsFile.download(year, day)
-    source_path = Aoc::SourceFile.create(year, day)
-    spec_path = Aoc::SpecFile.create(year, day)
-    others_1_path, others_2_path = Aoc::OtherSolutionsFiles.download(year, day)
+    input_path = Arb::InputFile.download(year, day)
+    instructions_path = Arb::InstructionsFile.download(year, day)
+    source_path = Arb::SourceFile.create(year, day)
+    spec_path = Arb::SpecFile.create(year, day)
+    others_1_path, others_2_path = Arb::OtherSolutionsFiles.download(year, day)
 
     puts "🤘 Bootstrapped #{year}##{day}\n\n"
 
     # Open the new files.
-    `#{Aoc::Config.editor_command} #{others_1_path}`
-    `#{Aoc::Config.editor_command} #{others_2_path}`
-    `#{Aoc::Config.editor_command} #{input_path}`
-    `#{Aoc::Config.editor_command} #{source_path}`
-    `#{Aoc::Config.editor_command} #{spec_path}`
-    `#{Aoc::Config.editor_command} #{instructions_path}`
+    `#{Arb::Config.editor_command} #{others_1_path}`
+    `#{Arb::Config.editor_command} #{others_2_path}`
+    `#{Arb::Config.editor_command} #{input_path}`
+    `#{Arb::Config.editor_command} #{source_path}`
+    `#{Arb::Config.editor_command} #{spec_path}`
+    `#{Arb::Config.editor_command} #{instructions_path}`
 
     last_committed_solution = `git log -n 1 --diff-filter=A --name-only --pretty=format: #{File.join("src", year || "")}`.lines.last
     if !last_committed_solution
       puts "Now fill in the spec for Part One with an example from the instructions, " \
-        "then run it with `#{PASTEL.blue.bold("aoc run")}` (or just `aoc`) as " \
+        "then run it with `#{PASTEL.blue.bold("arb run")}` (or just `arb`) as " \
         "you implement the solution. When the spec passes, your solution will " \
         "be run with the real input and you'll be prompted to submit your solution.\n"
     end
@@ -94,11 +94,11 @@ class AocApp < Thor
       return
     end
 
-    solution = Aoc::Runner.load_solution(year, day)
-    input_path = Aoc::InputFile.download(year, day, notify_exists: false)
+    solution = Arb::Runner.load_solution(year, day)
+    input_path = Arb::InputFile.download(year, day, notify_exists: false)
     answer_1, answer_2 = nil, nil
 
-    instructions_path = Aoc::InstructionsFile.download(year, day, notify_exists: false, overwrite: false)
+    instructions_path = Arb::InstructionsFile.download(year, day, notify_exists: false, overwrite: false)
     instructions = File.read(instructions_path)
     correct_answer_1, correct_answer_2 = instructions.scan(/Your puzzle answer was `([^`]+)`./).flatten
     skip_count = 0
@@ -117,12 +117,12 @@ class AocApp < Thor
     end
 
     if options.real_part_1? || (!options.real_part_2? && ((correct_answer_1.nil? && skip_count <= 1) || correct_answer_2))
-      answer_1 = Aoc::Runner.run_part("#{year}##{day}.1", correct_answer_1) do
+      answer_1 = Arb::Runner.run_part("#{year}##{day}.1", correct_answer_1) do
         solution.part_1(File.new(input_path))
       end
     end
     if options.real_part_2? || (!options.real_part_1? && ((correct_answer_1 && !correct_answer_2 && skip_count.zero?) || correct_answer_2))
-      answer_2 = Aoc::Runner.run_part("#{year}##{day}.2", correct_answer_2) do
+      answer_2 = Arb::Runner.run_part("#{year}##{day}.2", correct_answer_2) do
         solution.part_2(File.new(input_path))
       end
     end
@@ -144,7 +144,7 @@ class AocApp < Thor
     if submit == "y" || submit == ""
       options_part = options.real_part_1? ? "1" : (options.real_part_2? ? "2" : nil)
       inferred_part = correct_answer_1.nil? ? "1" : "2"
-      aoc_api = Aoc::Api.new(Aoc::Config.aoc_cookie)
+      aoc_api = Arb::AocApi.new(Arb::Config.aoc_cookie)
 
       response = aoc_api.submit(year, day, options_part || inferred_part, answer_2 || answer_1)
       message = response.match(/(?<=<article>).+(?=<\/article>)/m).to_s.strip
@@ -157,13 +157,13 @@ class AocApp < Thor
         puts "⭐ #{short_message}\n\n"
 
         # TODO don't re-download if the instructions file already contains the next part
-        instructions_path = Aoc::InstructionsFile.download(year, day, overwrite: true)
+        instructions_path = Arb::InstructionsFile.download(year, day, overwrite: true)
 
         if (options_part || inferred_part) == "1"
           puts "Downloaded instructions for Part Two.\n\n"
-          `#{Aoc::Config.editor_command} #{instructions_path}`
+          `#{Arb::Config.editor_command} #{instructions_path}`
 
-          spec_path = Aoc::SpecFile.create(year, day, notify_exists: false)
+          spec_path = Arb::SpecFile.create(year, day, notify_exists: false)
           spec = File.read(spec_path)
           spec_without_skips = spec.gsub("  xit ", "  it ")
           File.write(spec_path, spec_without_skips)
@@ -173,7 +173,7 @@ class AocApp < Thor
         if !last_committed_solution
           puts "\n\nAfter you're completely done with the puzzle (be sure to " \
             "look at other people's solutions and improve yours!), run " \
-            "`#{PASTEL.blue.bold("aoc bootstrap")}` (or `aoc b`) to prep the next puzzle.\n"
+            "`#{PASTEL.blue.bold("arb bootstrap")}` (or `arb b`) to prep the next puzzle.\n"
         end
       else
         puts "❌ #{short_message}"
@@ -302,7 +302,7 @@ class AocApp < Thor
             end
           end
 
-          if true#!last_committed_solution || day == :end
+          if !last_committed_solution || day == :end
             # TODO refactor to combine this with #progress
             default_year = "2015"
             default_day = "1"
@@ -372,4 +372,4 @@ class AocApp < Thor
   default_task :run_day
 end
 
-AocApp.start
+ArbApp.start

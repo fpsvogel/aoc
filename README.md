@@ -1,4 +1,4 @@
-# aoc
+# Advent of Ruby
 
 CLI tool for doing Advent of Code in Ruby.
 
@@ -7,23 +7,23 @@ CLI tool for doing Advent of Code in Ruby.
 This gem isn't published yet, so for now you can install it by running these commands:
 
 ```
-git clone https://github.com/fpsvogel/aoc.git
-cd aoc
+git clone https://github.com/fpsvogel/advent_of_ruby.git
+cd advent_of_ruby
 rake install
 ```
 
 ## Usage
 
 1. Create a directory where you want to store your solutions.
-2. In that directory, run the command `aoc` and follow the prompts!
+2. In that directory, run the command `arb` and follow the prompts!
 
 ## Commands
 
 Okay, if you *really* want to know all the details, here they are.
 
-Note: all commands can be abbreviated with their first letter, e.g. `aoc b` for `aoc bootstrap`.
+Note: all commands can be abbreviated with their first letter, e.g. `arb b` for `arb bootstrap`.
 
-- `aoc bootstrap [YEAR] [DAY]`
+- `arb bootstrap [YEAR] [DAY]`
   - Commits new and modified solutions to Git.
   - Downloads the input and instructions files for the given day.
   - Creates a source file and a spec file for the given day.
@@ -37,7 +37,7 @@ Note: all commands can be abbreviated with their first letter, e.g. `aoc b` for 
   - *If only the day argument is omitted, it bootstraps the next puzzle of the given year.*
   - Opens all of the new files using `editor_command` in `config.yml`.
   - Note: For easy file-searchability (Ctrl+P in VS Code), the instructions file is named (for day 1 of 2015, for example) `1501.md` and the other solutions are named `15011.rb` and `15012.rb` (part 1 and part 2).
-- `aoc run [YEAR] [DAY]`
+- `arb run [YEAR] [DAY]`
   - Runs specs for the given day.
   - Unless specs fail, runs the currently in-progress part (Part One or Part Two) of the given day.
   - If you're seeing specs run when you want to run only the real input, or vice versa, add one of the following flags:
@@ -46,9 +46,9 @@ Note: all commands can be abbreviated with their first letter, e.g. `aoc b` for 
     - `--real_part_2` (`-t`) runs only Part Two with the real input.
   - Optionally submits the answer, via a prompt that appears if it has not already been submitted.
   - *If both arguments are omitted, it runs the puzzle that is untracked in Git, if any.*
-- `aoc git` commits new and modified solutions to Git. This is handy if (unlike the basic "solve and then run `aoc bootstrap`" flow) you like to make multiple commits per solution, e.g. one after your own solution and then another after improving it based on other people's solutions.
-- `aoc progress` shows progress (total and by year) based on the number of your solutions committed in Git.
-- `aoc help` shows a summary of each command.
+- `arb git` commits new and modified solutions to Git. This is handy if (unlike the basic "solve and then run `arb bootstrap`" flow) you like to make multiple commits per solution, e.g. one after your own solution and then another after improving it based on other people's solutions.
+- `arb progress` shows progress (total and by year) based on the number of your solutions committed in Git.
+- `arb help` shows a summary of each command.
 
 ## Other AoC Ruby CLI tools
 

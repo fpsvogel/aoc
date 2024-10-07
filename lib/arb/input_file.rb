@@ -1,4 +1,4 @@
-module Aoc
+module Arb
   class InputFile
     def self.download(year, day, notify_exists: true)
       year_directory = File.join("input", year)
@@ -10,7 +10,7 @@ module Aoc
       if File.exist?(file_path)
         puts "Already exists: #{file_path}" if notify_exists
       else
-        aoc_api = Aoc::Api.new(Config.aoc_cookie)
+        aoc_api = Arb::AocApi.new(Config.aoc_cookie)
         response = aoc_api.input(year, day)
 
         File.write(file_path, response)

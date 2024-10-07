@@ -1,4 +1,4 @@
-module Aoc
+module Arb
   class SourceFile
     def self.create(year, day)
       year_directory = File.join("src", year)

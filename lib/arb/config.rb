@@ -1,4 +1,4 @@
-module Aoc
+module Arb
   class Config
     class << self
       attr_reader :editor_command, :aoc_cookie
