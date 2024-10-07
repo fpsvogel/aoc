@@ -96,7 +96,6 @@ class AocApp < Thor
 
     solution = Aoc::Runner.load_solution(year, day)
     input_path = Aoc::InputFile.download(year, day, notify_exists: false)
-    url = "https://adventofcode.com/#{year}/day/#{day}"
     answer_1, answer_2 = nil, nil
 
     instructions_path = Aoc::InstructionsFile.download(year, day, notify_exists: false, overwrite: false)
@@ -232,9 +231,13 @@ class AocApp < Thor
     unless changes.empty?
       match = changes.match(/(?<year>\d{4})\/(?<day>\d\d)(?:_spec)?.rb$/)
       change_year, change_day = match[:year], match[:day]
+      `git add -A`
+      `git commit -m "#{files_added ? "Solve" : "Improve"} #{change_year}##{change_day}"`
+
+      if files_added && change_day == "25"
+        puts "\n🎉 You've finished #{change_year}!\n\n"
+      end
     end
-    `git add -A`
-    `git commit -m "#{files_added ? "Solve" : "Improve"} #{change_year}##{change_day}"`
   end
 
   private
@@ -290,17 +293,64 @@ class AocApp < Thor
             match = last_committed_solution.match(/(?<year>\d{4})\/(?<day>\d\d).rb$/)
 
             year, day = match[:year], match[:day]
-            day = day.next unless default_untracked_or_done
-          else
-            year = nil
-            loop do
-              puts "What year do you want to bootstrap?"
-              print PASTEL.green("> ")
-              year_input = gets.strip
-              puts
-              break if year = year_input.match(/\A\s*\d{4}\s*/)&.to_s&.strip
+            if !default_untracked_or_done
+              if day == "25"
+                day = :end
+              else
+                day = day.next
+              end
             end
-            day = "1"
+          end
+
+          if true#!last_committed_solution || day == :end
+            # TODO refactor to combine this with #progress
+            default_year = "2015"
+            default_day = "1"
+            bootstrap_year_prompt = nil
+
+            committed_solution_files = `git log --diff-filter=A --name-only --pretty=format: src`
+            if committed_solution_files.empty?
+              bootstrap_year_prompt = "What year's puzzles do you want to start with? (default: #{default_year})"
+            else
+              previous_days = (2015..Date.today.year - 1).map(&:to_s).map { [_1, (1..25).map { |day| day.to_s.rjust(2, "0") }] }.to_h
+              previous_days.merge!(Date.today.year.to_s => (1..Date.today.day).map { |day| day.to_s.rjust(2, "0") }) if Date.today.month == 12
+
+              committed_days = committed_solution_files
+                .split("\n")
+                .map {
+                  match = _1.match(/(?<year>\d{4})\/(?<day>\d\d).rb$/)
+                  year, day = match[:year], match[:day]
+                  [year, day]
+                }
+                .group_by(&:first)
+                .transform_values { _1.map(&:last) }
+
+              default_year, default_day = previous_days
+                .map { |k, v| [k, v - (committed_days[k] || [])] }
+                .to_h
+                .then {
+                  [_1.keys.first, _1.values.first.first]
+                }
+              default_day.delete_prefix!("0")
+
+              puts "You've recently finished #{year}. Yay!"
+              bootstrap_year_prompt = "What year do you want to bootstrap next? (default: #{default_year} [at Day #{default_day}])"
+            end
+
+            loop do
+              puts bootstrap_year_prompt
+              print PASTEL.green("> ")
+              year_input = STDIN.gets.strip
+              puts
+              if year_input.strip.empty?
+                year = default_year
+                day = default_day
+              else
+                year = year_input.strip.match(/\A\d{4}\z/)&.to_s
+                day = "1"
+              end
+              break if year
+            end
           end
         end
       end
